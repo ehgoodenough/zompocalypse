@@ -46,7 +46,9 @@ window.Keyboard = {
 }
 
 document.addEventListener("keydown", function(event) {
-    Keyboard.data[event.keyCode] = 0
+    if(Keyboard.data[event.keyCode] == -1) {
+        Keyboard.data[event.keyCode] = 0
+    }
 })
 
 document.addEventListener("keyup", function(event) {
@@ -68,8 +70,12 @@ var Hero = function() {
 }
 
 Hero.prototype.update = function(tick) {
-    if(Keyboard.isJustDown(Keys.W)
-    || Keyboard.isJustDown(Keys.UP)) {
+    if(Keyboard.isJustDown(Keys.S)) {
+        var bomb = new Bomb({
+            x: this.x, y: this.y, vy: 0
+        })
+    }
+    if(Keyboard.isJustDown(Keys.W)) {
         if(this.jump == 0) {
             this.vy = -3
             this.jump = 1
@@ -141,31 +147,88 @@ Level.prototype.render = function() {
 var Bomb = function(protobomb) {
     this.x = protobomb.x
     this.y = protobomb.y
+    this.vy = protobomb.vy
     this.width = 4
     this.height = 2
+    this.tick = 0
+    this.armed = false
 
     this.id = id++
     bombs[this.id] = this
 }
 
 Bomb.prototype.update = function(tick) {
-    //
+    this.tick += tick
+    if(this.tick > 1.6) {
+        this.tick -= 1.6
+        this.armed = true
+    }
+
+    // gravity
+    this.vy += 8 * tick
+    this.y += this.vy
+
+    // collision with level
+    if(this.y + this.vy > 7*8) {
+        this.vy = 0
+        this.y = 7*8
+    }
+
+    // collision with hero
+    if(!!this.armed && this.isColliding(hero)) {
+        console.log("boom")
+        delete bombs[this.id]
+        hero.health -= 1
+    }
+}
+
+Bomb.prototype.isColliding = function(object) {
+    var dx = Math.abs(object.x - this.x)
+    var dy = Math.abs(object.y - this.y)
+    var max_dx = (object.width / 2) + (this.width / 2)
+    var max_dy = (object.height / 2) + (this.height / 2)
+    return dx < max_dx && dy < max_dy
 }
 
 Bomb.prototype.render = function() {
     Canvas.fillStyle = Colors.white
-    var x = this.x - (this.width / 2)
-    var y = this.y - this.height
+    if(this.tick > 1.5) {
+        Canvas.fillStyle = Colors.red
+    }
+    var x = Math.round(this.x - (this.width / 2))
+    var y = Math.round(this.y - this.height)
     Canvas.fillRect(x, y, this.width, this.height)
 }
 
-var hero = new Hero()
-var level = new Level()
+var Explosion = function(protoexplosion) {
+    this.x = protoexplosion.x
+    this.y = protoexplosion.y
+    this.diameter = 4*8
+    this.tick = 2
+
+    this.id = id++
+    explosions[this.id] = this
+}
+
+Explosion.prototype.update = function(tick) {
+    //?!
+}
+
+Explosion.prototype.render = function() {
+    Canvas.fillStyle = Colors.white
+    Canvas.beginPath()
+    Canvas.arc(this.x, this.y, this.diameter / 2, 0, 2 * Math.PI)
+    Canvas.fill()
+}
+
+window.hero = new Hero()
+window.level = new Level()
 window.bombs = {}
+window.explosions = {}
 window.id = 0
 
-new Bomb({
-    x: 4*8, y: 7*8
+var explosion = new Explosion({
+    x: 2*8, y: 2*8
 })
 
 Loop(function(tick) {
@@ -173,10 +236,16 @@ Loop(function(tick) {
     for(var id in bombs) {
         bombs[id].update(tick)
     }
+    for(var id in explosions) {
+        explosions[id].update(tick)
+    }
 
     Canvas.clearRect(0, 0, 128, 72)
     for(var id in bombs) {
         bombs[id].render()
+    }
+    for(var id in explosions) {
+        explosions[id].render()
     }
     hero.render()
     level.render()
