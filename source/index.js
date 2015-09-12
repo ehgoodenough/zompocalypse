@@ -138,13 +138,46 @@ Level.prototype.render = function() {
     Canvas.fillRect(0, 7*8, 16*8, 2*8)
 }
 
+var Bomb = function(protobomb) {
+    this.x = protobomb.x
+    this.y = protobomb.y
+    this.width = 4
+    this.height = 2
+
+    this.id = id++
+    bombs[this.id] = this
+}
+
+Bomb.prototype.update = function(tick) {
+    //
+}
+
+Bomb.prototype.render = function() {
+    Canvas.fillStyle = Colors.white
+    var x = this.x - (this.width / 2)
+    var y = this.y - this.height
+    Canvas.fillRect(x, y, this.width, this.height)
+}
+
 var hero = new Hero()
 var level = new Level()
+window.bombs = {}
+window.id = 0
+
+new Bomb({
+    x: 4*8, y: 7*8
+})
 
 Loop(function(tick) {
     hero.update(tick)
+    for(var id in bombs) {
+        bombs[id].update(tick)
+    }
 
     Canvas.clearRect(0, 0, 128, 72)
+    for(var id in bombs) {
+        bombs[id].render()
+    }
     hero.render()
     level.render()
 })
