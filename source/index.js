@@ -11,6 +11,10 @@ window.Keys = {
     D: 68,
     A: 65,
     S: 83,
+    UP: 38,
+    DOWN: 40,
+    LEFT: 37,
+    RIGHT: 39,
 }
 
 window.Loop = function(func) {
@@ -60,23 +64,58 @@ var Hero = function() {
     this.height = 9
     this.direction = +1
     this.color = Colors.white
+    this.jump = 0
 }
 
 Hero.prototype.update = function(tick) {
-    if(Keyboard.isDown(Keys.A)) {
-        this.direction = -1
-        this.vx = -1
-    } if(Keyboard.isDown(Keys.D)) {
-        this.direction = +1
-        this.vx = +1
+    if(Keyboard.isJustDown(Keys.W)
+    || Keyboard.isJustDown(Keys.UP)) {
+        if(this.jump == 0) {
+            this.vy = -3
+            this.jump = 1
+        } else if(this.jump == 1) {
+            this.vx = 3 * this.direction
+            this.jump = 2
+        }
     }
-    this.x += this.vx
+    if(Keyboard.isDown(Keys.A)) {
+        if(this.jump != 2) {
+            this.direction = -1
+            this.vx = -1
+        }
+    } if(Keyboard.isDown(Keys.D)) {
+        if(this.jump != 2) {
+            this.direction = +1
+            this.vx = +1
+        }
+    }
 
+    // gravity
+    this.vy += 8 * tick
+
+    // collision
+    if(this.y + this.vy > 7*8) {
+        this.vy = 0
+        this.y = 7*8
+        this.jump = 0
+    }
+
+    // translation
+    this.x += this.vx
+    this.y += this.vy
+
+    // friction
+    var friction = 0.0005
+    if(this.jump != 0) {
+        var friction = 0.5
+    }
+
+    // deceleration
     if(this.vx < 0) {
-        this.vx *= Math.pow(0.00005, tick)
+        this.vx *= Math.pow(friction, tick)
         if(this.vx > -0.001) {this.vx = 0}
     } else if(this.vx > 0) {
-        this.vx *= Math.pow(0.00005, tick)
+        this.vx *= Math.pow(friction, tick)
         if(this.vx < +0.001) {this.vx = 0}
     }
 }
@@ -84,48 +123,20 @@ Hero.prototype.update = function(tick) {
 Hero.prototype.render = function() {
     Canvas.strokeWidth = 1
     Canvas.strokeStyle = this.color
-    var x = Math.round(this.x) - (this.width / 2)
-    var y = Math.round(this.y) - this.height
-    Canvas.strokeRect(x + 0.5, y + 0.5, this.width, this.height - 1)
+    var w = this.jump != 2 ? this.width : this.height
+    var h = this.jump != 2 ? this.height : this.width
+    var x = Math.round(this.x) - (w / 2)
+    var y = Math.round(this.y) - h
+    Canvas.strokeRect(x + 0.5, y + 0.5, w, h - 1)
 }
 
 var Level = function() {
-    this.tiles = {}
-    for(var x = 0; x < 16; x++) {
-        for(var y = 0; y < 2; y++) {
-            this.tiles[x + "x" + y] = {
-                color: Math.random() <= 0.5 ? Colors.green2 : Colors.green2,
-                shape: Math.floor(Math.random() * 4),
-                x: x, y: y,
-            }
-        }
-    }
 }
 
 Level.prototype.render = function() {
-    for(var coords in this.tiles) {
-        var tile = this.tiles[coords]
-        Canvas.fillStyle = tile.color
-        var x = tile.x * 8
-        var y = (tile.y + 7) * 8
-        if(tile.shape == 0) {
-            Canvas.fillRect(x, y, 7, 7)
-        } else if(tile.shape == 1) {
-            Canvas.fillRect(x, y, 3, 7)
-            Canvas.fillRect(x+4, y, 3, 7)
-        } else if(tile.shape == 2) {
-            Canvas.fillRect(x, y, 7, 3)
-            Canvas.fillRect(x, y+4, 7, 3)
-        } else if(tile.shape == 3) {
-            Canvas.fillRect(x, y, 3, 3)
-            Canvas.fillRect(x+4, y, 3, 3)
-            Canvas.fillRect(x, y+4, 3, 3)
-            Canvas.fillRect(x+4, y+4, 3, 3)
-        }
-    }
+    Canvas.fillStyle = Colors.green2
+    Canvas.fillRect(0, 7*8, 16*8, 2*8)
 }
-
-var PX = 8
 
 var hero = new Hero()
 var level = new Level()
