@@ -178,7 +178,15 @@ Bomb.prototype.update = function(tick) {
     if(!!this.armed && this.isColliding(hero)) {
         console.log("boom")
         delete bombs[this.id]
-        hero.health -= 1
+        var explosion = new Explosion({
+            x: this.x, y: this.y
+        })
+        for(var i = -1; i <= 1; i++) {
+            new Explosion({
+                x: this.x + (Math.floor(Math.random() * 1.5*8*i) + 4*i),
+                y: this.y - (Math.floor(Math.random() * 1*8) + (i == 0 ? 1*8 : 0))
+            })
+        }
     }
 }
 
@@ -205,19 +213,24 @@ var Explosion = function(protoexplosion) {
     this.y = protoexplosion.y
     this.diameter = 4*8
     this.tick = 2
+    this.maxtick = 2
 
     this.id = id++
     explosions[this.id] = this
 }
 
 Explosion.prototype.update = function(tick) {
-    //?!
+    this.tick -= tick
+    if(this.tick <= 0) {
+        delete explosions[this.id]
+    }
 }
 
 Explosion.prototype.render = function() {
     Canvas.fillStyle = Colors.white
     Canvas.beginPath()
-    Canvas.arc(this.x, this.y, this.diameter / 2, 0, 2 * Math.PI)
+    var d = this.diameter * (this.tick / this.maxtick)
+    Canvas.arc(this.x, this.y, d / 2, 0, 2 * Math.PI)
     Canvas.fill()
 }
 
@@ -226,10 +239,6 @@ window.level = new Level()
 window.bombs = {}
 window.explosions = {}
 window.id = 0
-
-var explosion = new Explosion({
-    x: 2*8, y: 2*8
-})
 
 Loop(function(tick) {
     hero.update(tick)
