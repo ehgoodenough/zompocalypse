@@ -15,6 +15,33 @@ html
 
 canvas
 {
+    top: 0rem;
+    left: 0rem;
+    right: 0rem;
+    bottom: 0rem;
+    margin: auto;
+    position: fixed;
+    overflow: hidden;
     background-color: #293833;
     image-rendering: pixelated;
+}
+
+@media(min-aspect-ratio: 16/9)
+{
+    canvas
+    {
+        height: 100vh;
+        width: 177.778vh;
+        font-size: 11.111vh;
+    }
+}
+
+@media(max-aspect-ratio: 16/9)
+{
+    canvas
+    {
+        width: 100vw;
+        height: 56.25vw;
+        font-size: 6.25vw;
+    }
 }
