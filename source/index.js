@@ -90,13 +90,39 @@ Hero.prototype.render = function() {
 }
 
 var Level = function() {
-    this.width = 16*8
-    this.height = 2*8
+    this.tiles = {}
+    for(var x = 0; x < 16; x++) {
+        for(var y = 0; y < 2; y++) {
+            this.tiles[x + "x" + y] = {
+                color: Math.random() <= 0.5 ? Colors.green2 : Colors.green2,
+                shape: Math.floor(Math.random() * 4),
+                x: x, y: y,
+            }
+        }
+    }
 }
 
 Level.prototype.render = function() {
-    Canvas.fillStyle = Colors.green2
-    Canvas.fillRect(0, 7*PX, this.width, this.height)
+    for(var coords in this.tiles) {
+        var tile = this.tiles[coords]
+        Canvas.fillStyle = tile.color
+        var x = tile.x * 8
+        var y = (tile.y + 7) * 8
+        if(tile.shape == 0) {
+            Canvas.fillRect(x, y, 7, 7)
+        } else if(tile.shape == 1) {
+            Canvas.fillRect(x, y, 3, 7)
+            Canvas.fillRect(x+4, y, 3, 7)
+        } else if(tile.shape == 2) {
+            Canvas.fillRect(x, y, 7, 3)
+            Canvas.fillRect(x, y+4, 7, 3)
+        } else if(tile.shape == 3) {
+            Canvas.fillRect(x, y, 3, 3)
+            Canvas.fillRect(x+4, y, 3, 3)
+            Canvas.fillRect(x, y+4, 3, 3)
+            Canvas.fillRect(x+4, y+4, 3, 3)
+        }
+    }
 }
 
 var PX = 8
