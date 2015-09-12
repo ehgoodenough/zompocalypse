@@ -69,11 +69,13 @@ var Hero = function() {
     this.maxhealth = 8
     this.jump = 0
     this.damaged = 0
+
+    game.hero = this
 }
 
 Hero.prototype.update = function(tick) {
     if(Keyboard.isJustDown(Keys.S)) {
-        var bomb = new Bomb({
+        new Bomb({
             x: this.x, y: this.y, vy: 0
         })
     }
@@ -167,6 +169,7 @@ Hero.prototype.render = function() {
 }
 
 var Level = function() {
+    game.level = this
 }
 
 Level.prototype.render = function() {
@@ -183,8 +186,8 @@ var Bomb = function(protobomb) {
     this.tick = 0
     this.armed = false
 
-    this.id = id++
-    bombs[this.id] = this
+    this.id = gid++
+    game.bombs[this.id] = this
 }
 
 Bomb.prototype.update = function(tick) {
@@ -205,13 +208,13 @@ Bomb.prototype.update = function(tick) {
     this.y += this.vy
 
     // collision with hero
-    if(!!this.armed && this.isColliding(hero)) {
+    if(!!this.armed && this.isColliding(game.hero)) {
         this.explode()
     }
 
     // collision with zombies
-    for(var id in zombies) {
-        var zombie = zombies[id]
+    for(var id in game.zombies) {
+        var zombie = game.zombies[id]
         if(this.isColliding(zombie)) {
             this.explode()
         }
@@ -219,7 +222,7 @@ Bomb.prototype.update = function(tick) {
 }
 
 Bomb.prototype.explode = function() {
-    delete bombs[this.id]
+    delete game.bombs[this.id]
     var explosion = new Explosion({
         x: this.x, y: this.y
     })
@@ -256,18 +259,18 @@ var Explosion = function(protoexplosion) {
     this.tick = 2
     this.maxtick = 2
 
-    this.id = id++
-    explosions[this.id] = this
+    this.id = gid++
+    game.explosions[this.id] = this
 
     //BELOW CODE IS RUN TWICE OR THRICE CUZ
     //THE EXPLOSIONS ARE OVERLAPPING :(
 
-    if(this.isColliding(hero)) {
-        hero.hurt()
+    if(this.isColliding(game.hero)) {
+        game.hero.hurt()
     }
 
-    for(var idd in zombies) {
-        var zombie = zombies[idd]
+    for(var id in game.zombies) {
+        var zombie = game.zombies[id]
         if(this.isColliding(zombie)) {
             zombie.die()
         }
@@ -277,7 +280,7 @@ var Explosion = function(protoexplosion) {
 Explosion.prototype.update = function(tick) {
     this.tick -= tick
     if(this.tick <= 0) {
-        delete explosions[this.id]
+        delete game.explosions[this.id]
     }
 }
 
@@ -303,8 +306,8 @@ var Zombie = function(protozombie) {
     this.height = 9
     this.direction = protozombie.direction || +1
 
-    this.id = id++
-    zombies[this.id] = this
+    this.id = gid++
+    game.zombies[this.id] = this
 
     this.speed = 22
     this.tick = 0
@@ -328,7 +331,7 @@ Zombie.prototype.update = function(tick) {
         }
     } else if(this.state == "dying") {
         //gravity
-        this.vy += 5 * tick
+        this.vy += this.grav * tick
 
         // collision with level
         if(this.y + this.vy > 7*8) {
@@ -336,8 +339,8 @@ Zombie.prototype.update = function(tick) {
             this.vx = 0
             this.y = 7*8
 
-            delete zombies[this.id]
-            for(var i = 0; i < 10; i++) {
+            delete game.zombies[this.id]
+            for(var i = 0; i < 15; i++) {
                 new Particle({
                     x: this.x,
                     y: this.y,
@@ -356,7 +359,8 @@ var explosion_direction = +1
 Zombie.prototype.die = function() {
     this.state = "dying"
     this.vx = 1 * this.direction
-    this.vy = -2.5
+    this.vy = -3
+    this.grav = 5
 }
 
 Zombie.prototype.render = function() {
@@ -377,17 +381,19 @@ Zombie.prototype.render = function() {
 var Particle = function(protoparticle) {
     this.x = protoparticle.x + Math.round((Math.random() * 3) - 1.5)
     this.y = protoparticle.y
-    this.id = id++
-    this.vx = Math.random() * 5 - 2.5
-    this.vy = -1 * Math.random() * 3
-    particles[this.id] = this
+    this.id = gid++
+    this.vx = Math.random() * 1 - (1/2)
+    this.vy = -1 * Math.random() * 2.5
+    game.particles[this.id] = this
+    this.maxy = 7*8
+    this.i = protoparticle.i
 }
 
 Particle.prototype.update = function(tick) {
     this.vy += 8 * tick
 
-    if(this.vy + this.y > 7*8) {
-        this.y = 7*8
+    if(this.vy + this.y > this.maxy) {
+        this.y = this.maxy
         this.vx = 0
         this.vy = 0
     }
@@ -397,60 +403,71 @@ Particle.prototype.update = function(tick) {
 }
 
 Particle.prototype.render = function() {
-    Canvas.fillStyle = Colors.red
+    Canvas.fillStyle = Colors.green1
+    if(this.i % 2 == 1) {
+        Canvas.fillStyle = Colors.red
+    }
     var x = Math.round(this.x)
     var y = Math.round(this.y)
     Canvas.fillRect(x, y - 1, 1, 1)
 }
 
-window.hero = new Hero()
-window.level = new Level()
-window.bombs = {}
-window.explosions = {}
-window.zombies = {}
-window.particles = {}
-window.id = 0
+window.gid = 0
 
+var Game = function() {
+    this.hero = null
+    this.level = null
+    this.zombies = {}
+    this.bombs = {}
+    this.explosions = {}
+    this.particles = {}
+}
+
+Game.prototype.update = function(tick) {
+    this.hero.update(tick)
+    for(var id in this.zombies)
+        this.zombies[id].update(tick)
+    for(var id in this.bombs)
+        this.bombs[id].update(tick)
+    for(var id in this.explosions)
+        this.explosions[id].update(tick)
+    for(var id in this.particles)
+        this.particles[id].update(tick)
+}
+
+Game.prototype.render = function() {
+    this.hero.render()
+    for(var id in this.bombs)
+        this.bombs[id].render()
+    for(var id in this.zombies)
+        this.zombies[id].render()
+    for(var id in this.particles)
+        this.particles[id].render()
+    for(var id in this.explosions)
+        this.explosions[id].render()
+    this.level.render()
+}
+
+var ticker = 0
+ticker += ticker
+if(ticker > 3) {
+    ticker -= 3
+}
+
+window.game = new Game()
+new Hero({})
+new Level({})
 new Zombie({
     y: 7*8,
-    x: Math.random() * 128,
+    //x: Math.random() * 128,
+    x: 7*8,
     direction: Math.random() < 0.5 ? +1 : -1,
 })
 
-var ticker = 0
 Loop(function(tick) {
-    ticker += ticker
-    if(ticker > 3) {
-        ticker -= 3
-    }
-
-    hero.update(tick)
-    for(var id in zombies) {
-        zombies[id].update(tick)
-    }
-    for(var id in bombs) {
-        bombs[id].update(tick)
-    }
-    for(var id in explosions) {
-        explosions[id].update(tick)
-    }
-    for(var id in particles) {
-        particles[id].update(tick)
-    }
+    game.update(tick)
 
     Canvas.clearRect(0, 0, 128, 72)
-    for(var id in bombs) {
-        bombs[id].render()
-    }
-    hero.render()
-    for(var id in zombies) {
-        zombies[id].render()
-    }
-    for(var id in explosions) {
-        explosions[id].render()
-    }
-    level.render()
-    for(var id in particles) {
-        particles[id].render()
-    }
+
+    game.render(tick)
 })
