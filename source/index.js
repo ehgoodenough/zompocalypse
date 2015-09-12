@@ -66,6 +66,7 @@ var Hero = function() {
     this.height = 9
     this.direction = +1
     this.color = Colors.white
+    this.health = 7
     this.jump = 0
 }
 
@@ -126,6 +127,14 @@ Hero.prototype.update = function(tick) {
     }
 }
 
+Hero.prototype.hurt = function() {
+    hero.health -= 1
+    console.log(hero.health)
+    if(hero.health <= 0) {
+        console.log("dead")
+    }
+}
+
 Hero.prototype.render = function() {
     Canvas.strokeWidth = 1
     Canvas.strokeStyle = this.color
@@ -176,7 +185,6 @@ Bomb.prototype.update = function(tick) {
 
     // collision with hero
     if(!!this.armed && this.isColliding(hero)) {
-        console.log("boom")
         delete bombs[this.id]
         var explosion = new Explosion({
             x: this.x, y: this.y
@@ -217,6 +225,10 @@ var Explosion = function(protoexplosion) {
 
     this.id = id++
     explosions[this.id] = this
+
+    if(this.isColliding(hero)) {
+        hero.hurt()
+    }
 }
 
 Explosion.prototype.update = function(tick) {
@@ -224,6 +236,13 @@ Explosion.prototype.update = function(tick) {
     if(this.tick <= 0) {
         delete explosions[this.id]
     }
+}
+
+Explosion.prototype.isColliding = function(object) {
+    var x = Math.abs(object.x - this.x)
+    var y = Math.abs(object.y - this.y)
+    var radius = this.diameter / 2
+    return x < radius && y < radius
 }
 
 Explosion.prototype.render = function() {
