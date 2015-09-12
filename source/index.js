@@ -194,15 +194,15 @@ Bomb.prototype.update = function(tick) {
         this.armed = true
     }
 
-    // gravity
-    this.vy += 8 * tick
-    this.y += this.vy
-
     // collision with level
     if(this.y + this.vy > 7*8) {
         this.vy = 0
         this.y = 7*8
     }
+
+    // gravity
+    this.vy += 8 * tick
+    this.y += this.vy
 
     // collision with hero
     if(!!this.armed && this.isColliding(hero)) {
@@ -259,6 +259,9 @@ var Explosion = function(protoexplosion) {
     this.id = id++
     explosions[this.id] = this
 
+    //BELOW CODE IS RUN TWICE OR THRICE CUZ
+    //THE EXPLOSIONS ARE OVERLAPPING :(
+
     if(this.isColliding(hero)) {
         hero.hurt()
     }
@@ -304,12 +307,16 @@ var Zombie = function(protozombie) {
     zombies[this.id] = this
 
     this.speed = 22
-
+    this.tick = 0
     this.vx = 0
     this.vy = 0
 }
 
 Zombie.prototype.update = function(tick) {
+    this.tick += tick
+    if(this.tick > 0.2) {
+        this.tick -= 0.2
+    }
     if(this.state == undefined) {
         this.x += this.speed * this.direction * tick
         if(this.x < 0) {
@@ -321,7 +328,23 @@ Zombie.prototype.update = function(tick) {
         }
     } else if(this.state == "dying") {
         //gravity
-        this.vy += 8 * tick
+        this.vy += 5 * tick
+
+        // collision with level
+        if(this.y + this.vy > 7*8) {
+            this.vy = 0
+            this.vx = 0
+            this.y = 7*8
+
+            delete zombies[this.id]
+            for(var i = 0; i < 10; i++) {
+                new Particle({
+                    x: this.x,
+                    y: this.y,
+                    i: i
+                })
+            }
+        }
 
         this.x += this.vx
         this.y += this.vy
@@ -332,17 +355,52 @@ var explosion_direction = +1
 
 Zombie.prototype.die = function() {
     this.state = "dying"
-    this.vx = 1.5
-    this.vy = -3.5
+    this.vx = 1 * this.direction
+    this.vy = -2.5
 }
 
 Zombie.prototype.render = function() {
     Canvas.fillStyle = Colors.green1
     var h = this.height// - (Math.round(this.x) % 2)
     var w = this.width
+
+    if(this.state == "dying") {
+        var t = h
+        h = w
+        w = t
+    }
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
     Canvas.fillRect(x, y, w, h)
+}
+
+var Particle = function(protoparticle) {
+    this.x = protoparticle.x + Math.round((Math.random() * 3) - 1.5)
+    this.y = protoparticle.y
+    this.id = id++
+    this.vx = Math.random() * 5 - 2.5
+    this.vy = -1 * Math.random() * 3
+    particles[this.id] = this
+}
+
+Particle.prototype.update = function(tick) {
+    this.vy += 8 * tick
+
+    if(this.vy + this.y > 7*8) {
+        this.y = 7*8
+        this.vx = 0
+        this.vy = 0
+    }
+
+    this.x += this.vx
+    this.y += this.vy
+}
+
+Particle.prototype.render = function() {
+    Canvas.fillStyle = Colors.red
+    var x = Math.round(this.x)
+    var y = Math.round(this.y)
+    Canvas.fillRect(x, y - 1, 1, 1)
 }
 
 window.hero = new Hero()
@@ -350,8 +408,8 @@ window.level = new Level()
 window.bombs = {}
 window.explosions = {}
 window.zombies = {}
+window.particles = {}
 window.id = 0
-
 
 new Zombie({
     y: 7*8,
@@ -376,6 +434,9 @@ Loop(function(tick) {
     for(var id in explosions) {
         explosions[id].update(tick)
     }
+    for(var id in particles) {
+        particles[id].update(tick)
+    }
 
     Canvas.clearRect(0, 0, 128, 72)
     for(var id in bombs) {
@@ -389,4 +450,7 @@ Loop(function(tick) {
         explosions[id].render()
     }
     level.render()
+    for(var id in particles) {
+        particles[id].render()
+    }
 })
