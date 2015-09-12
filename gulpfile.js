@@ -1,4 +1,5 @@
 var gulp = require("gulp")
+var gulp_zip = require("gulp-zip")
 var gulp_util = require("gulp-util")
 var gulp_size = require("gulp-size")
 var gulp_micro = require("gulp-micro")
@@ -23,10 +24,12 @@ gulp.task("build", function() {
                 .pipe(gulp_minify_css())
         }))
         .pipe(gulp_minify_html())
+        .pipe(gulp.dest("./build"))
+        .pipe(gulp_connect.reload())
+        .pipe(gulp_zip("index.zip"))
         .pipe(gulp_micro({limit: 13 * 1024}))
         .pipe(gulp_size({title: "JS13K"}))
         .pipe(gulp.dest("./build"))
-        .pipe(gulp_connect.reload())
 })
 
 gulp.task("server", function() {
