@@ -139,7 +139,7 @@ Hero.prototype.hurt = function() {
         this.health -= 1
         this.damaged = 0.25
         if(this.health <= 0) {
-            console.log("dead")
+            window.location = window.location
         }
     }
 }
@@ -206,16 +206,28 @@ Bomb.prototype.update = function(tick) {
 
     // collision with hero
     if(!!this.armed && this.isColliding(hero)) {
-        delete bombs[this.id]
-        var explosion = new Explosion({
-            x: this.x, y: this.y
-        })
-        for(var i = -1; i <= 1; i++) {
-            new Explosion({
-                x: this.x + (Math.floor(Math.random() * 1.5*8*i) + 4*i),
-                y: this.y - (Math.floor(Math.random() * 1*8) + (i == 0 ? 1*8 : 0))
-            })
+        this.explode()
+    }
+
+    // collision with zombies
+    for(var id in zombies) {
+        var zombie = zombies[id]
+        if(this.isColliding(zombie)) {
+            this.explode()
         }
+    }
+}
+
+Bomb.prototype.explode = function() {
+    delete bombs[this.id]
+    var explosion = new Explosion({
+        x: this.x, y: this.y
+    })
+    for(var i = -1; i <= 1; i++) {
+        new Explosion({
+            x: this.x + (Math.floor(Math.random() * 1.5*8*i) + 4*i),
+            y: this.y - (Math.floor(Math.random() * 1*8) + (i == 0 ? 1*8 : 0))
+        })
     }
 }
 
@@ -250,6 +262,13 @@ var Explosion = function(protoexplosion) {
     if(this.isColliding(hero)) {
         hero.hurt()
     }
+
+    for(var idd in zombies) {
+        var zombie = zombies[idd]
+        if(this.isColliding(zombie)) {
+            zombie.die()
+        }
+    }
 }
 
 Explosion.prototype.update = function(tick) {
@@ -274,14 +293,83 @@ Explosion.prototype.render = function() {
     Canvas.fill()
 }
 
+var Zombie = function(protozombie) {
+    this.x = protozombie.x || 0
+    this.y = protozombie.y || -2
+    this.width = 7
+    this.height = 9
+    this.direction = protozombie.direction || +1
+
+    this.id = id++
+    zombies[this.id] = this
+
+    this.speed = 22
+
+    this.vx = 0
+    this.vy = 0
+}
+
+Zombie.prototype.update = function(tick) {
+    if(this.state == undefined) {
+        this.x += this.speed * this.direction * tick
+        if(this.x < 0) {
+            this.x = 0
+            this.direction = +1
+        } else if(this.x > 128) {
+            this.x = 128
+            this.direction = -1
+        }
+    } else if(this.state == "dying") {
+        //gravity
+        this.vy += 8 * tick
+
+        this.x += this.vx
+        this.y += this.vy
+    }
+}
+
+var explosion_direction = +1
+
+Zombie.prototype.die = function() {
+    this.state = "dying"
+    this.vx = 1.5
+    this.vy = -3.5
+}
+
+Zombie.prototype.render = function() {
+    Canvas.fillStyle = Colors.green1
+    var h = this.height// - (Math.round(this.x) % 2)
+    var w = this.width
+    var x = Math.round(this.x - (w / 2))
+    var y = Math.round(this.y - h)
+    Canvas.fillRect(x, y, w, h)
+}
+
 window.hero = new Hero()
 window.level = new Level()
 window.bombs = {}
 window.explosions = {}
+window.zombies = {}
 window.id = 0
 
+
+new Zombie({
+    y: 7*8,
+    x: Math.random() * 128,
+    direction: Math.random() < 0.5 ? +1 : -1,
+})
+
+var ticker = 0
 Loop(function(tick) {
+    ticker += ticker
+    if(ticker > 3) {
+        ticker -= 3
+    }
+
     hero.update(tick)
+    for(var id in zombies) {
+        zombies[id].update(tick)
+    }
     for(var id in bombs) {
         bombs[id].update(tick)
     }
@@ -294,6 +382,9 @@ Loop(function(tick) {
         bombs[id].render()
     }
     hero.render()
+    for(var id in zombies) {
+        zombies[id].render()
+    }
     for(var id in explosions) {
         explosions[id].render()
     }
