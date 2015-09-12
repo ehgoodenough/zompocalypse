@@ -65,9 +65,10 @@ var Hero = function() {
     this.width = 6
     this.height = 9
     this.direction = +1
-    this.color = Colors.white
-    this.health = 7
+    this.health = 8
+    this.maxhealth = 8
     this.jump = 0
+    this.damaged = 0
 }
 
 Hero.prototype.update = function(tick) {
@@ -125,24 +126,44 @@ Hero.prototype.update = function(tick) {
         this.vx *= Math.pow(friction, tick)
         if(this.vx < +0.001) {this.vx = 0}
     }
+
+    // animation
+    this.damaged -= tick
+    if(this.damaged < 0) {
+        this.damaged = 0
+    }
 }
 
 Hero.prototype.hurt = function() {
-    hero.health -= 1
-    console.log(hero.health)
-    if(hero.health <= 0) {
-        console.log("dead")
+    if(this.damaged <= 0) {
+        this.health -= 1
+        this.damaged = 0.25
+        if(this.health <= 0) {
+            console.log("dead")
+        }
     }
 }
 
 Hero.prototype.render = function() {
     Canvas.strokeWidth = 1
-    Canvas.strokeStyle = this.color
+    Canvas.strokeStyle = Colors.white
     var w = this.jump != 2 ? this.width : this.height
     var h = this.jump != 2 ? this.height : this.width
     var x = Math.round(this.x) - (w / 2)
     var y = Math.round(this.y) - h
     Canvas.strokeRect(x + 0.5, y + 0.5, w, h - 1)
+    Canvas.fillStyle = Colors.white
+    if(this.damaged > 0) {
+        Canvas.fillStyle = Colors.red
+    }
+    x += 1
+    y += 1
+    w -= 1
+    h -= 1
+    Canvas.fillRect(x, y, w, h - 1)
+    h = this.maxhealth - this.health
+    Canvas.fillStyle = Colors.red
+    Canvas.fillRect(x, y, w, h)
 }
 
 var Level = function() {
@@ -272,9 +293,9 @@ Loop(function(tick) {
     for(var id in bombs) {
         bombs[id].render()
     }
+    hero.render()
     for(var id in explosions) {
         explosions[id].render()
     }
-    hero.render()
     level.render()
 })
