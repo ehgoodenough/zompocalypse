@@ -75,42 +75,73 @@ var Hero = function() {
 
     this.jumping = 0
     this.damaged = 0
+    this.struggling = -1
 
     game.hero = this
 }
 
 Hero.prototype.update = function(tick) {
-    // input: bombing
-    if(Keyboard.isJustDown(Controls.S)
-    || Keyboard.isJustDown(Controls.DOWN)
-    || Keyboard.isJustDown(Controls.SPACE)) {
-        new Bomb({x: this.x, y: this.y})
-    }
-    // input: jumping/diving
-    if(Keyboard.isJustDown(Controls.W)
-    || Keyboard.isJustDown(Controls.UP)) {
-        if(this.jumping == 0) {
-            this.vy = -3
-            this.jumping = 1
-        } else if(this.jumping == 1) {
-            this.vx = 3 * this.direction
-            this.jumping = 2
+    if(this.struggling > -1) {
+        // input: struggling
+        if(Keyboard.isJustDown(Controls.S)
+        || Keyboard.isJustDown(Controls.DOWN)
+        || Keyboard.isJustDown(Controls.SPACE)) {
+            this.struggling += 1
+        } if(Keyboard.isJustDown(Controls.W)
+        || Keyboard.isJustDown(Controls.UP)) {
+            this.struggling += 1
+        } if(Keyboard.isJustDown(Controls.A)
+        || Keyboard.isJustDown(Controls.LEFT)) {
+            this.struggling += 1
+        } if(Keyboard.isJustDown(Controls.D)
+        || Keyboard.isJustDown(Controls.RIGHT)) {
+            this.struggling += 1
         }
-    }
-    //input: moving left
-    if(Keyboard.isDown(Controls.A)
-    || Keyboard.isDown(Controls.LEFT)) {
-        if(this.jumping != 2) {
-            this.direction = -1
-            this.vx = -1
+        if(this.struggling >= 20) {
+            this.struggling = -1
+            for(var id in game.zombies) {
+                var zombie = game.zombies[id]
+                if(zombie.state == "attacking") {
+                    if(zombie.x < this.x) {
+                        zombie.direction = -1
+                    } else {
+                        zombie.direction = +1
+                    }
+                    zombie.die()
+                }
+            }
         }
-    }
-    // input: moving right
-    if(Keyboard.isDown(Controls.D)
-    || Keyboard.isDown(Controls.RIGHT)) {
-        if(this.jumping != 2) {
-            this.direction = +1
-            this.vx = +1
+    } else {
+        // input: bombing
+        if(Keyboard.isJustDown(Controls.S)
+        || Keyboard.isJustDown(Controls.DOWN)
+        || Keyboard.isJustDown(Controls.SPACE)) {
+            new Bomb({x: this.x, y: this.y})
+        }
+        // input: jumping/diving
+        if(Keyboard.isJustDown(Controls.W)
+        || Keyboard.isJustDown(Controls.UP)) {
+            if(this.jumping == 0) {
+                this.vy = -3
+                this.jumping = 1
+            } else if(this.jumping == 1) {
+                this.vx = 3 * this.direction
+                this.jumping = 2
+            }
+        }
+        //input: moving
+        if(Keyboard.isDown(Controls.A)
+        || Keyboard.isDown(Controls.LEFT)) {
+            if(this.jumping != 2) {
+                this.direction = -1
+                this.vx = -1
+            }
+        } if(Keyboard.isDown(Controls.D)
+        || Keyboard.isDown(Controls.RIGHT)) {
+            if(this.jumping != 2) {
+                this.direction = +1
+                this.vx = +1
+            }
         }
     }
 
@@ -162,7 +193,7 @@ Hero.prototype.update = function(tick) {
 Hero.prototype.hurt = function() {
     if(this.damaged <= 0) {
         this.health -= 1
-        this.damaged = 0.25
+        this.damaged = 0.1
         if(this.health <= 0) {
             window.location = window.location
         }
@@ -170,7 +201,11 @@ Hero.prototype.hurt = function() {
 }
 
 Hero.prototype.render = function() {
-    Canvas.fillStyle = Colors.white
+    if(this.damaged <= 0) {
+        Canvas.fillStyle = Colors.white
+    } else {
+        Canvas.fillStyle = Colors.red
+    }
     var w = this.jumping != 2 ? this.width : this.height
     var h = this.jumping != 2 ? this.height : this.width
     var x = Math.round(this.x - (w / 2))
@@ -326,10 +361,6 @@ var Zombie = function(protozombie) {
 }
 
 Zombie.prototype.update = function(tick) {
-    this.tick += tick
-    if(this.tick > 0.2) {
-        this.tick -= 0.2
-    }
     if(this.state == "falling") {
         this.y += 8 * tick
         if(this.y > game.level.floor) {
@@ -344,6 +375,17 @@ Zombie.prototype.update = function(tick) {
         } else if(this.x > game.level.width) {
             this.x = game.level.width
             this.direction = -1
+        }
+        if(this.isColliding(game.hero)) {
+            this.state = "attacking"
+            game.hero.struggling = 0
+            game.hero.vx = 0
+        }
+    } else if(this.state == "attacking") {
+        this.tick += tick
+        if(this.tick > 1.5) {
+            this.tick -= 1.5
+            game.hero.hurt()
         }
     } else if(this.state == "dying") {
         //gravity
@@ -406,10 +448,23 @@ Zombie.prototype.die = function() {
     this.vy = -3
 }
 
+Zombie.prototype.isColliding = function(object) {
+    var dx = Math.abs(object.x - this.x)
+    var dy = Math.abs(object.y - this.y)
+    var max_dx = (object.width / 2) + (this.width / 2)
+    var max_dy = (object.height / 2) + (this.height / 2)
+    return dx < max_dx && dy < max_dy
+}
+
 Zombie.prototype.render = function() {
     Canvas.fillStyle = Colors.green1
     var h = this.state != "dying" ? this.height : this.width
     var w = this.state != "dying" ? this.width : this.height
+    if(this.state == "attacking") {
+        //if(this.tick % 0.5 == 0) {
+            h -= 1
+        //}
+    }
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
     Canvas.fillRect(x, y, w, h)
