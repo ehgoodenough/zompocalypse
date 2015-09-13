@@ -286,7 +286,7 @@ Explosion.prototype.update = function(tick) {
 
 Explosion.prototype.isColliding = function(object) {
     var x = Math.abs(object.x - this.x)
-    var y = Math.abs(object.y - this.y)
+    var y = Math.abs(object.y - this.y - (object.height / 2))
     var radius = this.diameter / 2
     return x < radius && y < radius
 }
@@ -313,6 +313,10 @@ var Zombie = function(protozombie) {
     this.tick = 0
     this.vx = 0
     this.vy = 0
+
+    if(this.y < 7*8) {
+        this.state = "falling"
+    }
 }
 
 Zombie.prototype.update = function(tick) {
@@ -320,7 +324,13 @@ Zombie.prototype.update = function(tick) {
     if(this.tick > 0.2) {
         this.tick -= 0.2
     }
-    if(this.state == undefined) {
+    if(this.state == "falling") {
+        this.y += 8 * tick
+        if(this.y > 7*8) {
+            this.y = 7*8
+            this.state = undefined
+        }
+    } else if(this.state == undefined) {
         this.x += this.speed * this.direction * tick
         if(this.x < 0) {
             this.x = 0
@@ -458,9 +468,7 @@ window.game = new Game()
 new Hero({})
 new Level({})
 new Zombie({
-    y: 7*8,
-    //x: Math.random() * 128,
-    x: 7*8,
+    x: Math.random() * 128,
     direction: Math.random() < 0.5 ? +1 : -1,
 })
 
