@@ -47,6 +47,7 @@ html
 
 canvas {
     height: 100%;
+    position: absolute;
     background-color: #293833;
     image-rendering: pixelated;
 }

@@ -103,11 +103,20 @@ Hero.prototype.update = function(tick) {
     // gravity
     this.vy += 8 * tick
 
-    // collision
+    // collision with floor
     if(this.y + this.vy > game.level.floor) {
         this.vy = 0
         this.y = game.level.floor
         this.jump = 0
+    }
+
+    // collision with walls
+    if(this.x + this.vy < 0) {
+        this.vx = 0
+        this.x = 0
+    } if(this.x + this.vy > game.level.width) {
+        this.x = game.level.width
+        this.vx = 0
     }
 
     // translation
@@ -166,18 +175,6 @@ Hero.prototype.render = function() {
     h = this.maxhealth - this.health
     Canvas.fillStyle = Colors.red
     Canvas.fillRect(x, y, w, h)
-}
-
-var Level = function() {
-    this.width = 256
-    this.height = 72
-    this.floor = this.height - 8
-    game.level = this
-}
-
-Level.prototype.render = function() {
-    Canvas.fillStyle = Colors.green2
-    Canvas.fillRect(0, this.floor, this.width, 8)
 }
 
 var Bomb = function(protobomb) {
@@ -425,6 +422,127 @@ Particle.prototype.render = function() {
     Canvas.fillRect(x, y - 1, 1, 1)
 }
 
+var Level = function() {
+    this.width = 256
+    this.height = 72
+    this.floor = this.height - 8 - 1
+
+    game.level = this
+
+    this.tiles = []
+    var iterator = 0
+    while(iterator < this.width / 8) {
+        var random = Math.floor(Math.random() * 5)
+        if(random == 0) {
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1,
+                width: 7,
+                height: 7,
+            })
+            iterator++
+        } else if(random == 1) {
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1,
+                width: 7,
+                height: 3,
+            })
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1 + 4,
+                width: 7,
+                height: 3,
+            })
+            iterator++
+        } else if(random == 2) {
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1,
+                width: 3,
+                height: 7,
+            })
+            this.tiles.push({
+                x: iterator * 8 + 4,
+                y: this.floor + 1,
+                width: 3,
+                height: 7,
+            })
+            iterator++
+        } else if(random == 3) {
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1,
+                width: 3, height: 3,
+            })
+            this.tiles.push({
+                x: iterator * 8 + 4,
+                y: this.floor + 1,
+                width: 3, height: 3,
+            })
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1 + 4,
+                width: 3, height: 3,
+            })
+            this.tiles.push({
+                x: iterator * 8 + 4,
+                y: this.floor + 1 + 4,
+                width: 3, height: 3,
+            })
+            iterator++
+        } else if(random == 4) {
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1,
+                width: 3,
+                height: 7,
+            })
+            this.tiles.push({
+                x: iterator * 8,
+                y: this.floor + 1 + 4,
+                width: 7,
+                height: 3,
+            })
+            this.tiles.push({
+                x: (iterator + 0.5) * 8,
+                y: this.floor + 1,
+                width: 7,
+                height: 3,
+            })
+            this.tiles.push({
+                x: (iterator + 1) * 8,
+                y: this.floor + 1 + 4,
+                width: 7,
+                height: 3,
+            })
+            this.tiles.push({
+                x: (iterator + 2) * 8,
+                y: this.floor + 1,
+                width: 3,
+                height: 7,
+            })
+            this.tiles.push({
+                x: (iterator + 1.5) * 8,
+                y: this.floor + 1,
+                width: 7,
+                height: 3,
+            })
+            iterator += 2.5
+        }
+    }
+}
+
+Level.prototype.render = function() {
+    Canvas.fillStyle = Colors.green1
+    Canvas.fillRect(0, this.floor, this.width, 8+1)
+    for(var index in this.tiles) {
+        var tile = this.tiles[index]
+        Canvas.fillStyle = Colors.green2
+        Canvas.fillRect(tile.x, tile.y, tile.width, tile.height)
+    }
+}
+
 window.gid = 0
 
 var Game = function() {
@@ -459,6 +577,10 @@ Game.prototype.render = function() {
     for(var id in this.explosions)
         this.explosions[id].render()
     this.level.render()
+
+    var x = Math.round(game.hero.x - (16 * 8) / 2) / 8
+    x = Math.max(Math.min(x, (game.level.width / 8) - 16), 0)
+    document.getElementById("canvas").style.left = -x + "em"
 }
 
 var ticker = 0
