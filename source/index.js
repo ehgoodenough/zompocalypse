@@ -6,7 +6,7 @@ window.Colors = {
     green3: "#293833",
 }
 
-window.Keys = {
+window.Controls = {
     W: 87,
     D: 68,
     A: 65,
@@ -15,6 +15,7 @@ window.Keys = {
     DOWN: 40,
     LEFT: 37,
     RIGHT: 39,
+    SPACE: 32,
 }
 
 window.Loop = function(func) {
@@ -59,42 +60,55 @@ window.Canvas = document.getElementById("canvas").getContext("2d")
 
 var Hero = function() {
     this.x = 16
-    this.y = game.level.floor
+    this.y = 48
+
     this.vx = 0
     this.vy = 0
-    this.width = 6
-    this.height = 9
+
+    this.width = 4
+    this.height = 6
+
     this.direction = +1
+
     this.health = 8
     this.maxhealth = 8
-    this.jump = 0
+
+    this.jumping = 0
     this.damaged = 0
 
     game.hero = this
 }
 
 Hero.prototype.update = function(tick) {
-    if(Keyboard.isJustDown(Keys.S)) {
-        new Bomb({
-            x: this.x, y: this.y, vy: 0
-        })
+    // input: bombing
+    if(Keyboard.isJustDown(Controls.S)
+    || Keyboard.isJustDown(Controls.DOWN)
+    || Keyboard.isJustDown(Controls.SPACE)) {
+        new Bomb({x: this.x, y: this.y})
     }
-    if(Keyboard.isJustDown(Keys.W)) {
-        if(this.jump == 0) {
+    // input: jumping/diving
+    if(Keyboard.isJustDown(Controls.W)
+    || Keyboard.isJustDown(Controls.UP)) {
+        if(this.jumping == 0) {
             this.vy = -3
-            this.jump = 1
-        } else if(this.jump == 1) {
+            this.jumping = 1
+        } else if(this.jumping == 1) {
             this.vx = 3 * this.direction
-            this.jump = 2
+            this.jumping = 2
         }
     }
-    if(Keyboard.isDown(Keys.A)) {
-        if(this.jump != 2) {
+    //input: moving left
+    if(Keyboard.isDown(Controls.A)
+    || Keyboard.isDown(Controls.LEFT)) {
+        if(this.jumping != 2) {
             this.direction = -1
             this.vx = -1
         }
-    } if(Keyboard.isDown(Keys.D)) {
-        if(this.jump != 2) {
+    }
+    // input: moving right
+    if(Keyboard.isDown(Controls.D)
+    || Keyboard.isDown(Controls.RIGHT)) {
+        if(this.jumping != 2) {
             this.direction = +1
             this.vx = +1
         }
@@ -103,18 +117,18 @@ Hero.prototype.update = function(tick) {
     // gravity
     this.vy += 8 * tick
 
-    // collision with floor
+    // collision: floor
     if(this.y + this.vy > game.level.floor) {
-        this.vy = 0
         this.y = game.level.floor
-        this.jump = 0
+        this.vy = 0
+        this.jumping = 0
     }
 
-    // collision with walls
-    if(this.x + this.vy < 0) {
+    // collision: walls
+    if(this.x + this.vx < 0) {
         this.vx = 0
         this.x = 0
-    } if(this.x + this.vy > game.level.width) {
+    } else if(this.x + this.vx > game.level.width) {
         this.x = game.level.width
         this.vx = 0
     }
@@ -125,7 +139,7 @@ Hero.prototype.update = function(tick) {
 
     // friction
     var friction = 0.0005
-    if(this.jump != 0) {
+    if(this.jumping != 0) {
         var friction = 0.5
     }
 
@@ -156,37 +170,28 @@ Hero.prototype.hurt = function() {
 }
 
 Hero.prototype.render = function() {
-    Canvas.strokeWidth = 1
-    Canvas.strokeStyle = Colors.white
-    var w = this.jump != 2 ? this.width : this.height
-    var h = this.jump != 2 ? this.height : this.width
-    var x = Math.round(this.x) - (w / 2)
-    var y = Math.round(this.y) - h
-    Canvas.strokeRect(x + 0.5, y + 0.5, w, h - 1)
     Canvas.fillStyle = Colors.white
-    if(this.damaged > 0) {
-        Canvas.fillStyle = Colors.red
-    }
-    x += 1
-    y += 1
-    w -= 1
-    h -= 1
-    Canvas.fillRect(x, y, w, h - 1)
-    h = this.maxhealth - this.health
-    Canvas.fillStyle = Colors.red
+    var w = this.jumping != 2 ? this.width : this.height
+    var h = this.jumping != 2 ? this.height : this.width
+    var x = Math.round(this.x - (w / 2))
+    var y = Math.round(this.y - h)
     Canvas.fillRect(x, y, w, h)
+    return
 }
 
 var Bomb = function(protobomb) {
     this.x = protobomb.x
     this.y = protobomb.y
-    this.vy = protobomb.vy
+
+    this.vy = 0
+
     this.width = 4
     this.height = 2
-    this.tick = 0
-    this.armed = false
 
-    this.id = gid++
+    this.tick = 0
+    this.primed = false
+
+    this.id = window.gid++
     game.bombs[this.id] = this
 }
 
@@ -194,25 +199,25 @@ Bomb.prototype.update = function(tick) {
     this.tick += tick
     if(this.tick > 1.6) {
         this.tick -= 1.6
-        this.armed = true
+        this.primed = true
     }
 
-    // collision with level
+    // collision: floor
     if(this.y + this.vy > game.level.floor) {
-        this.vy = 0
         this.y = game.level.floor
+        this.vy = 0
     }
 
     // gravity
     this.vy += 8 * tick
     this.y += this.vy
 
-    // collision with hero
-    if(!!this.armed && this.isColliding(game.hero)) {
+    // collision: hero
+    if(!!this.primed && this.isColliding(game.hero)) {
         this.explode()
     }
 
-    // collision with zombies
+    // collision: zombies
     for(var id in game.zombies) {
         var zombie = game.zombies[id]
         if(this.isColliding(zombie)) {
@@ -223,13 +228,11 @@ Bomb.prototype.update = function(tick) {
 
 Bomb.prototype.explode = function() {
     delete game.bombs[this.id]
-    var explosion = new Explosion({
-        x: this.x, y: this.y
-    })
+    new Explosion({x: this.x, y: this.y})
     for(var i = -1; i <= 1; i++) {
         new Explosion({
-            x: this.x + (Math.floor(Math.random() * 1.5*8*i) + 4*i),
-            y: this.y - (Math.floor(Math.random() * 1*8) + (i == 0 ? 1*8 : 0))
+            x: this.x + (Math.round(Math.random() * 1.5 * 8 * i) + (4 * i)),
+            y: this.y - (Math.round(Math.random() * 8) + (i == 0 ? 8 : 0)),
         })
     }
 }
@@ -243,8 +246,9 @@ Bomb.prototype.isColliding = function(object) {
 }
 
 Bomb.prototype.render = function() {
-    Canvas.fillStyle = Colors.white
-    if(this.tick > 1.5) {
+    if(this.tick < 1.5) {
+        Canvas.fillStyle = Colors.white
+    } else {
         Canvas.fillStyle = Colors.red
     }
     var x = Math.round(this.x - (this.width / 2))
@@ -255,15 +259,15 @@ Bomb.prototype.render = function() {
 var Explosion = function(protoexplosion) {
     this.x = protoexplosion.x
     this.y = protoexplosion.y
-    this.diameter = 4*8
-    this.tick = 2
-    this.maxtick = 2
+    this.diameter = 32
 
-    this.id = gid++
+    this.tick = 2
+
+    this.id = window.gid++
     game.explosions[this.id] = this
 
-    //BELOW CODE IS RUN TWICE OR THRICE CUZ
-    //THE EXPLOSIONS ARE OVERLAPPING :(
+    // FOLLOWING CODE IS RUN TWO OR MORE TIMES
+    // BECAUSE THE EXPLOSIONS ARE OVERLAPPING
 
     if(this.isColliding(game.hero)) {
         game.hero.hurt()
@@ -294,25 +298,27 @@ Explosion.prototype.isColliding = function(object) {
 Explosion.prototype.render = function() {
     Canvas.fillStyle = Colors.white
     Canvas.beginPath()
-    var d = this.diameter * (this.tick / this.maxtick)
-    Canvas.arc(this.x, this.y, d / 2, 0, 2 * Math.PI)
+    var diameter = this.diameter * (this.tick / 2)
+    Canvas.arc(this.x, this.y, diameter / 2, 0, 2 * Math.PI)
     Canvas.fill()
 }
 
 var Zombie = function(protozombie) {
-    this.x = protozombie.x || 0
+    this.x = protozombie.x
     this.y = protozombie.y || -2
-    this.width = 7
-    this.height = 9
-    this.direction = protozombie.direction || +1
 
-    this.id = gid++
-    game.zombies[this.id] = this
-
-    this.speed = 22
-    this.tick = 0
     this.vx = 0
     this.vy = 0
+
+    this.width = 6
+    this.height = 8
+
+    this.direction = protozombie.direction || +1
+
+    this.id = window.gid++
+    game.zombies[this.id] = this
+
+    this.tick = 0
 
     if(this.y < game.level.floor) {
         this.state = "falling"
@@ -328,10 +334,10 @@ Zombie.prototype.update = function(tick) {
         this.y += 8 * tick
         if(this.y > game.level.floor) {
             this.y = game.level.floor
-            this.state = undefined
+            this.state = "moving"
         }
-    } else if(this.state == undefined) {
-        this.x += this.speed * this.direction * tick
+    } else if(this.state == "moving") {
+        this.x += 22 * this.direction * tick
         if(this.x < 0) {
             this.x = 0
             this.direction = +1
@@ -341,81 +347,117 @@ Zombie.prototype.update = function(tick) {
         }
     } else if(this.state == "dying") {
         //gravity
-        this.vy += this.grav * tick
+        this.vy += 5 * tick
 
-        // collision with level
+        // collision: floor
         if(this.y + this.vy > game.level.floor) {
-            this.vy = 0
-            this.vx = 0
             this.y = game.level.floor
+            delete game.zombies[this.id]
+            for(var i = 0; i < 15; i++) {
+                new Particle({
+                    x: this.x + Math.round((Math.random() * 3) - 1.5),
+                    y: this.y,
+                    vx: Math.random() * 1 - 0.5,
+                    vy: -1 * Math.random() * 2.5,
+                    type: i % 2
+                })
+            }
+            return
+        }
 
+        // collision: walls
+        if(this.x + this.vx < 0) {
+            this.x = 0
             delete game.zombies[this.id]
             for(var i = 0; i < 15; i++) {
                 new Particle({
                     x: this.x,
-                    y: this.y,
-                    i: i
+                    y: this.y + Math.round((Math.random() * 3) - 1.5),
+                    vx: Math.random() * 1,
+                    vy: -1 * Math.random() * 2.5,
+                    type: i % 2
                 })
             }
+            return
+        } if(this.x + this.vx > game.level.width) {
+            this.x = game.level.width
+            delete game.zombies[this.id]
+            for(var i = 0; i < 15; i++) {
+                new Particle({
+                    x: this.x,
+                    y: this.y + Math.round((Math.random() * 3) - 1.5),
+                    vx: Math.random() * -1,
+                    vy: -1 * Math.random() * 2.5,
+                    type: i % 2
+                })
+            }
+            return
         }
 
+        // translation
         this.x += this.vx
         this.y += this.vy
     }
 }
 
-var explosion_direction = +1
-
 Zombie.prototype.die = function() {
     this.state = "dying"
-    this.vx = 1 * this.direction
+    this.vx = this.direction
     this.vy = -3
-    this.grav = 5
 }
 
 Zombie.prototype.render = function() {
     Canvas.fillStyle = Colors.green1
-    var h = this.height// - (Math.round(this.x) % 2)
-    var w = this.width
-
-    if(this.state == "dying") {
-        var t = h
-        h = w
-        w = t
-    }
+    var h = this.state != "dying" ? this.height : this.width
+    var w = this.state != "dying" ? this.width : this.height
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
     Canvas.fillRect(x, y, w, h)
 }
 
 var Particle = function(protoparticle) {
-    this.x = protoparticle.x + Math.round((Math.random() * 3) - 1.5)
+    this.x = protoparticle.x
     this.y = protoparticle.y
-    this.id = gid++
-    this.vx = Math.random() * 1 - (1/2)
-    this.vy = -1 * Math.random() * 2.5
+
+    this.vx = protoparticle.vx
+    this.vy = protoparticle.vy
+
+    this.type = protoparticle.type
+
+    this.id = window.gid++
     game.particles[this.id] = this
-    this.maxy = game.level.floor
-    this.i = protoparticle.i
 }
 
 Particle.prototype.update = function(tick) {
+    // gravity
     this.vy += 8 * tick
 
-    if(this.vy + this.y > this.maxy) {
-        this.y = this.maxy
+    // collision: floor
+    if(this.y + this.vy > game.level.floor) {
+        this.y = game.level.floor
         this.vx = 0
         this.vy = 0
     }
 
+    // collision: walls
+    if(this.x + this.vx < 0) {
+        this.x = 0
+        this.vx = 0
+    } if(this.x + this.vx > game.level.width) {
+        this.x = game.level.width
+        this.vx = 0
+    }
+
+    // translation
     this.x += this.vx
     this.y += this.vy
 }
 
 Particle.prototype.render = function() {
-    Canvas.fillStyle = Colors.green1
-    if(this.i % 2 == 1) {
+    if(this.type == 0) {
         Canvas.fillStyle = Colors.red
+    } else {
+        Canvas.fillStyle = Colors.green1
     }
     var x = Math.round(this.x)
     var y = Math.round(this.y)
@@ -425,7 +467,7 @@ Particle.prototype.render = function() {
 var Level = function() {
     this.width = 256
     this.height = 72
-    this.floor = this.height - 8 - 1
+    this.floor = this.height - 9
 
     game.level = this
 
@@ -535,7 +577,7 @@ var Level = function() {
 
 Level.prototype.render = function() {
     Canvas.fillStyle = Colors.green1
-    Canvas.fillRect(0, this.floor, this.width, 8+1)
+    Canvas.fillRect(0, this.floor, this.width, 9)
     for(var index in this.tiles) {
         var tile = this.tiles[index]
         Canvas.fillStyle = Colors.green2
@@ -583,18 +625,15 @@ Game.prototype.render = function() {
     document.getElementById("canvas").style.left = -x + "em"
 }
 
-var ticker = 0
-ticker += ticker
-if(ticker > 3) {
-    ticker -= 3
-}
-
 window.game = new Game()
 new Level({})
 new Hero({})
 new Zombie({
-    x: Math.random() * game.level.width,
-    direction: Math.random() < 0.5 ? +1 : -1,
+    x: 48,
+    y: game.level.floor - 1,
+    direction: -1,
+    //x: Math.random() * game.level.width,
+    //direction: Math.random() < 0.5 ? +1 : -1,
 })
 
 Loop(function(tick) {
