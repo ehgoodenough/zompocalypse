@@ -13,7 +13,7 @@ html
     background-color: #111;
 }
 
-canvas
+#frame
 {
     top: 0rem;
     left: 0rem;
@@ -22,13 +22,12 @@ canvas
     margin: auto;
     position: fixed;
     overflow: hidden;
-    background-color: #293833;
-    image-rendering: pixelated;
+    background-color: teal;
 }
 
 @media(min-aspect-ratio: 16/9)
 {
-    canvas
+    #frame
     {
         height: 100vh;
         width: 177.778vh;
@@ -38,10 +37,16 @@ canvas
 
 @media(max-aspect-ratio: 16/9)
 {
-    canvas
+    #frame
     {
         width: 100vw;
         height: 56.25vw;
         font-size: 6.25vw;
     }
+}
+
+canvas {
+    height: 100%;
+    background-color: #293833;
+    image-rendering: pixelated;
 }

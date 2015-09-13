@@ -59,7 +59,7 @@ window.Canvas = document.getElementById("canvas").getContext("2d")
 
 var Hero = function() {
     this.x = 16
-    this.y = 7*8
+    this.y = game.level.floor
     this.vx = 0
     this.vy = 0
     this.width = 6
@@ -104,9 +104,9 @@ Hero.prototype.update = function(tick) {
     this.vy += 8 * tick
 
     // collision
-    if(this.y + this.vy > 7*8) {
+    if(this.y + this.vy > game.level.floor) {
         this.vy = 0
-        this.y = 7*8
+        this.y = game.level.floor
         this.jump = 0
     }
 
@@ -169,12 +169,15 @@ Hero.prototype.render = function() {
 }
 
 var Level = function() {
+    this.width = 256
+    this.height = 72
+    this.floor = this.height - 8
     game.level = this
 }
 
 Level.prototype.render = function() {
     Canvas.fillStyle = Colors.green2
-    Canvas.fillRect(0, 7*8, 16*8, 2*8)
+    Canvas.fillRect(0, this.floor, this.width, 8)
 }
 
 var Bomb = function(protobomb) {
@@ -198,9 +201,9 @@ Bomb.prototype.update = function(tick) {
     }
 
     // collision with level
-    if(this.y + this.vy > 7*8) {
+    if(this.y + this.vy > game.level.floor) {
         this.vy = 0
-        this.y = 7*8
+        this.y = game.level.floor
     }
 
     // gravity
@@ -314,7 +317,7 @@ var Zombie = function(protozombie) {
     this.vx = 0
     this.vy = 0
 
-    if(this.y < 7*8) {
+    if(this.y < game.level.floor) {
         this.state = "falling"
     }
 }
@@ -326,8 +329,8 @@ Zombie.prototype.update = function(tick) {
     }
     if(this.state == "falling") {
         this.y += 8 * tick
-        if(this.y > 7*8) {
-            this.y = 7*8
+        if(this.y > game.level.floor) {
+            this.y = game.level.floor
             this.state = undefined
         }
     } else if(this.state == undefined) {
@@ -335,8 +338,8 @@ Zombie.prototype.update = function(tick) {
         if(this.x < 0) {
             this.x = 0
             this.direction = +1
-        } else if(this.x > 128) {
-            this.x = 128
+        } else if(this.x > game.level.width) {
+            this.x = game.level.width
             this.direction = -1
         }
     } else if(this.state == "dying") {
@@ -344,10 +347,10 @@ Zombie.prototype.update = function(tick) {
         this.vy += this.grav * tick
 
         // collision with level
-        if(this.y + this.vy > 7*8) {
+        if(this.y + this.vy > game.level.floor) {
             this.vy = 0
             this.vx = 0
-            this.y = 7*8
+            this.y = game.level.floor
 
             delete game.zombies[this.id]
             for(var i = 0; i < 15; i++) {
@@ -395,7 +398,7 @@ var Particle = function(protoparticle) {
     this.vx = Math.random() * 1 - (1/2)
     this.vy = -1 * Math.random() * 2.5
     game.particles[this.id] = this
-    this.maxy = 7*8
+    this.maxy = game.level.floor
     this.i = protoparticle.i
 }
 
@@ -447,12 +450,12 @@ Game.prototype.update = function(tick) {
 
 Game.prototype.render = function() {
     this.hero.render()
-    for(var id in this.bombs)
-        this.bombs[id].render()
     for(var id in this.zombies)
         this.zombies[id].render()
     for(var id in this.particles)
         this.particles[id].render()
+    for(var id in this.bombs)
+        this.bombs[id].render()
     for(var id in this.explosions)
         this.explosions[id].render()
     this.level.render()
@@ -465,17 +468,17 @@ if(ticker > 3) {
 }
 
 window.game = new Game()
-new Hero({})
 new Level({})
+new Hero({})
 new Zombie({
-    x: Math.random() * 128,
+    x: Math.random() * game.level.width,
     direction: Math.random() < 0.5 ? +1 : -1,
 })
 
 Loop(function(tick) {
     game.update(tick)
 
-    Canvas.clearRect(0, 0, 128, 72)
+    Canvas.clearRect(0, 0, game.level.width, 72)
 
     game.render(tick)
 })
