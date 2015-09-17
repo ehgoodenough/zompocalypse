@@ -678,18 +678,6 @@ var Game = function() {
 }
 
 Game.prototype.update = function(tick) {
-    this.tick = this.tick + tick || tick
-    if(this.tick > 8) {
-        this.tick -= 8
-        for(var i = 0; i < 16; i++) {
-            new Zombie({
-                y: -2 - (Math.random() * 16),
-                x: Math.random() * game.level.width,
-                direction: Math.random() < 0.5 ? +1 : -1,
-            })
-        }
-    }
-
     this.hero.update(tick)
     for(var id in this.zombies)
         this.zombies[id].update(tick)
@@ -721,10 +709,10 @@ Game.prototype.render = function() {
 window.game = new Game()
 new Level({})
 new Hero({})
-for(var i = 0; i < 11; i++) {
+for(var i = 0; i < 16; i++) {
     new Zombie({
-        y: -2 - (Math.random() * 16),
-        x: Math.random() * game.level.width,
+        y: -2 - (Math.random() * 48),
+        x: (i * 2 * 8) + (Math.random() * 2 - 1),
         direction: Math.random() < 0.5 ? +1 : -1,
     })
 }
