@@ -76,6 +76,188 @@ window.Font = {
         [0, 1, 1],
         [0, 0, 1],
         [1, 1, 0],
+    ],
+    A: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    B: [
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+    ],
+    C: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    D: [
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+    ],
+    E: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    F: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    G: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    H: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    I: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    J: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    K: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    L: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    M: [
+        [1, 0, 1],
+        [1, 1, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+    ],
+    N: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    O: [
+        [0, 1, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [0, 1, 0],
+    ],
+    P: [
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 0, 0],
+        [1, 0, 0],
+    ],
+    Q: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    R: [
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+    ],
+    S: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    T: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    U: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    V: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    W: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    X: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    Y: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ],
+    Z: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
     ]
 }
 
@@ -209,12 +391,16 @@ Hero.prototype.update = function(tick) {
         || Keyboard.isJustDown(Controls.SPACE)) {
             new Bomb({x: this.x, y: this.y})
             if(this.hasDroppedBomb == false) {
-                this.hasDroppedBomb = true
-                new Zombie({
-                    x: -3,
-                    y: 72 - 9 - 1,
-                    direction: +1,
-                })
+                window.setTimeout(function() {
+                    game.hero.hasDroppedBomb = true
+                }, 500)
+                window.setTimeout(function() {
+                    new Zombie({
+                        x: -2,
+                        y: 72 - 9 - 1,
+                        direction: +1,
+                    })
+                }, 1000)
             }
         }
         // input: jumping/diving
@@ -465,8 +651,8 @@ var Zombie = function(protozombie) {
     this.vx = 0
     this.vy = 0
 
-    this.width = 6
-    this.height = 8
+    this.width = 4
+    this.height = 6
 
     this.direction = protozombie.direction || +1
 
@@ -606,9 +792,7 @@ Zombie.prototype.render = function() {
     var h = this.state != "dying" ? this.height : this.width
     var w = this.state != "dying" ? this.width : this.height
     if(this.state == "attacking") {
-        //if(this.tick % 0.5 == 0) {
-            h -= 1
-        //}
+        h -= 1
     }
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
@@ -825,7 +1009,24 @@ Game.prototype.render = function() {
 
     }
 
-    if(this.hero.score > 0) {
+    if(this.hero.hasDroppedBomb == false) {
+        drawString("DROP BOMB", {cx: 38, y: 28})
+        GameCanvas.fillStyle = Colors.white
+        GameCanvas.beginPath()
+        var x = 38 - 1
+        var y1 = 28 + 8
+        var y2 = y1 + 15
+        GameCanvas.moveTo(x, y1)
+        GameCanvas.lineTo(x - 1, y1 + 1)
+        GameCanvas.lineTo(x - 1, y2 - 4)
+        GameCanvas.lineTo(x - 3, y2 - 4)
+        GameCanvas.lineTo(x, y2)
+        GameCanvas.lineTo(x + 3, y2 - 4)
+        GameCanvas.lineTo(x + 1, y2 - 4)
+        GameCanvas.lineTo(x + 1, y1 + 7)
+        GameCanvas.closePath()
+        GameCanvas.fill()
+    } if(this.hero.score > 0) {
         drawString(this.hero.score + "", {x: 2, y: 2, canvas: ScoreCanvas})
     }
 
@@ -834,14 +1035,24 @@ Game.prototype.render = function() {
 
 function drawString(string, options) {
     var canvas = options.canvas || GameCanvas
+    string = string.toUpperCase()
+    var sx = 0
+    var sy = 0
+    if(options.x) {
+        sx = options.x
+    } if(options.y) {
+        sy = options.y
+    } if(options.cx) {
+        sx = options.cx - ((string.length * 4) / 2)
+    }
     for(var index in string) {
         var char = Font[string[index]]
         var stringpos = parseInt(index) * 4
         for(var cy in char) {
             for(var cx in char[cy]) {
                 if(char[cy][cx] == 1) {
-                    var y = parseInt(cy) + (options.y || 0)
-                    var x = stringpos + parseInt(cx) + (options.x || 0)
+                    var y = parseInt(cy) + sy
+                    var x = stringpos + parseInt(cx) + sx
                     canvas.fillStyle = Colors.white
                     canvas.fillRect(x, y, 1, 1)
                 }
