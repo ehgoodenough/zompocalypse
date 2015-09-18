@@ -992,6 +992,8 @@ var Game = function() {
     this.bombs = {}
     this.explosions = {}
     this.particles = {}
+
+    this.maxzombies = 8
 }
 
 Game.prototype.update = function(tick) {
@@ -1005,9 +1007,10 @@ Game.prototype.update = function(tick) {
     for(var id in this.particles)
         this.particles[id].update(tick)
 
-    var MAX_ZOMBIES = 8
+    this.maxzombies = Math.max(this.maxzombies, Math.floor(this.hero.score / 20))
+
     if(this.hero.hasKilledZombie == true) {
-        if(Object.keys(this.zombies).length < MAX_ZOMBIES) {
+        if(Object.keys(this.zombies).length < game.maxzombies) {
             new Zombie({
                 y: -2 - (Math.random() * 48),
                 x: (Math.random() * (game.level.width - 16)) + 16,
