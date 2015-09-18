@@ -151,6 +151,12 @@ var Hero = function() {
     this.damaged = 0
     this.struggling = -1
 
+    this.hasDroppedBomb = false
+    this.hasKilledZombie = false
+
+    this.score = 0
+    this.camera = 0
+
     game.hero = this
 }
 
@@ -202,6 +208,14 @@ Hero.prototype.update = function(tick) {
         || Keyboard.isJustDown(Controls.DOWN)
         || Keyboard.isJustDown(Controls.SPACE)) {
             new Bomb({x: this.x, y: this.y})
+            if(this.hasDroppedBomb == false) {
+                this.hasDroppedBomb = true
+                new Zombie({
+                    x: -3,
+                    y: 72 - 9 - 1,
+                    direction: +1,
+                })
+            }
         }
         // input: jumping/diving
         if(Keyboard.isJustDown(Controls.W)
@@ -272,6 +286,19 @@ Hero.prototype.update = function(tick) {
     this.damaged -= tick
     if(this.damaged < 0) {
         this.damaged = 0
+    }
+
+    // camera
+    if(this.hasKilledZombie == true) {
+        var target = Math.round(game.hero.x - (16 * 8) / 2) / 8
+        target = Math.max(Math.min(target, (game.level.width / 8) - 16), 0)
+        if(Math.abs(this.camera - target) < 0.5) {
+            this.camera = target
+        } if(this.camera < target) {
+            this.camera += 0.5
+        } else if(this.camera > target) {
+            this.camera -= 0.5
+        }
     }
 }
 
@@ -488,7 +515,6 @@ Zombie.prototype.update = function(tick) {
         // collision: floor
         if(this.y + this.vy > game.level.floor) {
             this.y = game.level.floor
-            delete game.zombies[this.id]
             for(var i = 0; i < 15; i++) {
                 new Particle({
                     x: this.x + Math.round((Math.random() * 3) - 1.5),
@@ -498,13 +524,19 @@ Zombie.prototype.update = function(tick) {
                     type: i % 2
                 })
             }
+            delete game.zombies[this.id]
+            game.hero.score += 10
+            if(game.hero.hasKilledZombie == false) {
+                window.setTimeout(function() {
+                    game.hero.hasKilledZombie = true
+                }, 1000)
+            }
             return
         }
 
         // collision: walls
         if(this.x + this.vx < 0) {
             this.x = 0
-            delete game.zombies[this.id]
             for(var i = 0; i < 15; i++) {
                 new Particle({
                     x: this.x,
@@ -514,10 +546,16 @@ Zombie.prototype.update = function(tick) {
                     type: i % 2
                 })
             }
+            delete game.zombies[this.id]
+            game.hero.score += 10
+            if(game.hero.hasKilledZombie == false) {
+                window.setTimeout(function() {
+                    game.hero.hasKilledZombie = true
+                }, 1000)
+            }
             return
         } if(this.x + this.vx > game.level.width) {
             this.x = game.level.width
-            delete game.zombies[this.id]
             for(var i = 0; i < 15; i++) {
                 new Particle({
                     x: this.x,
@@ -526,6 +564,13 @@ Zombie.prototype.update = function(tick) {
                     vy: -1 * Math.random() * 2.5,
                     type: i % 2
                 })
+            }
+            delete game.zombies[this.id]
+            game.hero.score += 10
+            if(game.hero.hasKilledZombie == false) {
+                window.setTimeout(function() {
+                    game.hero.hasKilledZombie = true
+                }, 1000)
             }
             return
         }
@@ -780,11 +825,11 @@ Game.prototype.render = function() {
 
     }
 
-    drawString("1234567890", {x: 2, y: 2, canvas: ScoreCanvas})
+    if(this.hero.score > 0) {
+        drawString(this.hero.score + "", {x: 2, y: 2, canvas: ScoreCanvas})
+    }
 
-    var x = Math.round(game.hero.x - (16 * 8) / 2) / 8
-    x = Math.max(Math.min(x, (game.level.width / 8) - 16), 0)
-    document.getElementById("game").style.left = -x + "em"
+    document.getElementById("game").style.left = -game.hero.camera + "em"
 }
 
 function drawString(string, options) {
