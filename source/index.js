@@ -6,6 +6,79 @@ window.Colors = {
     green3: "#293833",
 }
 
+window.Font = {
+    0: [
+        [0, 1, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [0, 1, 0],
+    ],
+    1: [
+        [0, 1, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+        [0, 1, 0],
+        [1, 1, 1],
+    ],
+    2: [
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 0, 1],
+        [0, 1, 0],
+        [1, 1, 1],
+    ],
+    3: [
+        [1, 1, 0],
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+    ],
+    4: [
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 0, 1],
+        [0, 0, 1],
+    ],
+    5: [
+        [1, 1, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+    ],
+    6: [
+        [0, 1, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0],
+    ],
+    7: [
+        [1, 1, 1],
+        [1, 0, 1],
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 1, 0],
+    ],
+    8: [
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0],
+    ],
+    9: [
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 1],
+        [0, 0, 1],
+        [1, 1, 0],
+    ]
+}
+
 window.Controls = {
     W: 87,
     D: 68,
@@ -701,6 +774,22 @@ Game.prototype.render = function() {
         this.explosions[id].render()
     this.level.render()
 
+    var score = "1234567890"
+    for(var index in score) {
+        var char = Font[score[index]]
+        var offset = parseInt(index) * 4
+        for(var cy in char) {
+            for(var cx in char[cy]) {
+                if(char[cy][cx] == 1) {
+                    var y = parseInt(cy) + 2
+                    var x = offset + parseInt(cx) + 2
+                    Canvas.fillStyle = Colors.white
+                    Canvas.fillRect(x, y, 1, 1)
+                }
+            }
+        }
+    }
+
     var x = Math.round(game.hero.x - (16 * 8) / 2) / 8
     x = Math.max(Math.min(x, (game.level.width / 8) - 16), 0)
     document.getElementById("canvas").style.left = -x + "em"
@@ -709,7 +798,7 @@ Game.prototype.render = function() {
 window.game = new Game()
 new Level({})
 new Hero({})
-for(var i = 0; i < 16; i++) {
+/*for(var i = 0; i < 16; i++) {
     new Zombie({
         y: -2 - (Math.random() * 48),
         x: (i * 2 * 8) + (Math.random() * 2 - 1),
@@ -722,7 +811,7 @@ new Zombie({
     direction: -1,
     //x: Math.random() * game.level.width,
     //direction: Math.random() < 0.5 ? +1 : -1,
-})
+})*/
 
 Loop(function(tick) {
     game.update(tick)

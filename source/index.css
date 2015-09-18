@@ -22,7 +22,7 @@ html
     margin: auto;
     position: fixed;
     overflow: hidden;
-    background-color: teal;
+    background-color: pink;
 }
 
 @media(min-aspect-ratio: 16/9)
@@ -45,7 +45,9 @@ html
     }
 }
 
-canvas {
+canvas
+{
+    top: 0em;
     height: 100%;
     position: absolute;
     background-color: #293833;
