@@ -444,9 +444,16 @@ Hero.prototype.update = function(tick) {
     if(this.x + this.vx < 0) {
         this.vx = 0
         this.x = 0
-    } else if(this.x + this.vx > game.level.width) {
-        this.x = game.level.width
-        this.vx = 0
+    } if(this.hasKilledZombie == true) {
+        if(this.x + this.vx > game.level.width) {
+            this.x = game.level.width
+            this.vx = 0
+        }
+    } else {
+        if(this.x + this.vx > 128) {
+            this.x = 128
+            this.vx = 0
+        }
     }
 
     // translation
@@ -715,6 +722,13 @@ Zombie.prototype.update = function(tick) {
             if(game.hero.hasKilledZombie == false) {
                 window.setTimeout(function() {
                     game.hero.hasKilledZombie = true
+                    for(var i = 1; i < 15; i++) {
+                        new Zombie({
+                            y: -2 - (Math.random() * 48),
+                            x: (i * 2 * 8) + (Math.random() * 2 - 1),
+                            direction: Math.random() < 0.5 ? +1 : -1,
+                        })
+                    }
                 }, 1000)
             }
             return
@@ -990,6 +1004,17 @@ Game.prototype.update = function(tick) {
         this.explosions[id].update(tick)
     for(var id in this.particles)
         this.particles[id].update(tick)
+
+    var MAX_ZOMBIES = 8
+    if(this.hero.hasKilledZombie == true) {
+        if(Object.keys(this.zombies).length < MAX_ZOMBIES) {
+            new Zombie({
+                y: -2 - (Math.random() * 48),
+                x: (Math.random() * (game.level.width - 16)) + 16,
+                direction: Math.random() < 0.5 ? +1 : -1,
+            })
+        }
+    }
 }
 
 Game.prototype.render = function() {
@@ -1003,11 +1028,6 @@ Game.prototype.render = function() {
     for(var id in this.explosions)
         this.explosions[id].render()
     this.level.render()
-
-    //console.log(Object.keys(this.zombies).length)
-    if(this.hero.hasKilledZombie == true) {
-
-    }
 
     if(this.hero.hasDroppedBomb == false) {
         drawString("DROP BOMB", {cx: 38, y: 28})
@@ -1035,6 +1055,9 @@ Game.prototype.render = function() {
 
 function drawString(string, options) {
     var canvas = options.canvas || GameCanvas
+    if(canvas == ScoreCanvas) {
+        ScoreCanvas.clearRect(0, 0, 128, 72)
+    }
     string = string.toUpperCase()
     var sx = 0
     var sy = 0
