@@ -129,7 +129,8 @@ document.addEventListener("keyup", function(event) {
     Keyboard.data[event.keyCode] = -1
 })
 
-window.Canvas = document.getElementById("canvas").getContext("2d")
+window.GameCanvas = document.getElementById("game").getContext("2d")
+window.ScoreCanvas = document.getElementById("score").getContext("2d")
 
 var Hero = function() {
     this.x = 16
@@ -286,15 +287,15 @@ Hero.prototype.hurt = function() {
 
 Hero.prototype.render = function() {
     if(this.damaged <= 0) {
-        Canvas.fillStyle = Colors.white
+        GameCanvas.fillStyle = Colors.white
     } else {
-        Canvas.fillStyle = Colors.red
+        GameCanvas.fillStyle = Colors.red
     }
     var w = this.jumping != 2 ? this.width : this.height
     var h = this.jumping != 2 ? this.height : this.width
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
-    Canvas.fillRect(x, y, w, h)
+    GameCanvas.fillRect(x, y, w, h)
     return
 }
 
@@ -367,13 +368,13 @@ Bomb.prototype.isColliding = function(object) {
 
 Bomb.prototype.render = function() {
     if(this.tick < 1.5) {
-        Canvas.fillStyle = Colors.white
+        GameCanvas.fillStyle = Colors.white
     } else {
-        Canvas.fillStyle = Colors.red
+        GameCanvas.fillStyle = Colors.red
     }
     var x = Math.round(this.x - (this.width / 2))
     var y = Math.round(this.y - this.height)
-    Canvas.fillRect(x, y, this.width, this.height)
+    GameCanvas.fillRect(x, y, this.width, this.height)
 }
 
 var Explosion = function(protoexplosion) {
@@ -423,11 +424,11 @@ Explosion.prototype.isColliding = function(object) {
 }
 
 Explosion.prototype.render = function() {
-    Canvas.fillStyle = Colors.white
-    Canvas.beginPath()
+    GameCanvas.fillStyle = Colors.white
+    GameCanvas.beginPath()
     var diameter = this.diameter * (this.tick / 2)
-    Canvas.arc(this.x, this.y, diameter / 2, 0, 2 * Math.PI)
-    Canvas.fill()
+    GameCanvas.arc(this.x, this.y, diameter / 2, 0, 2 * Math.PI)
+    GameCanvas.fill()
 }
 
 var Zombie = function(protozombie) {
@@ -556,7 +557,7 @@ Zombie.prototype.isColliding = function(object) {
 }
 
 Zombie.prototype.render = function() {
-    Canvas.fillStyle = Colors.green1
+    GameCanvas.fillStyle = Colors.green1
     var h = this.state != "dying" ? this.height : this.width
     var w = this.state != "dying" ? this.width : this.height
     if(this.state == "attacking") {
@@ -566,7 +567,7 @@ Zombie.prototype.render = function() {
     }
     var x = Math.round(this.x - (w / 2))
     var y = Math.round(this.y - h)
-    Canvas.fillRect(x, y, w, h)
+    GameCanvas.fillRect(x, y, w, h)
 }
 
 var Particle = function(protoparticle) {
@@ -609,13 +610,13 @@ Particle.prototype.update = function(tick) {
 
 Particle.prototype.render = function() {
     if(this.type == 0) {
-        Canvas.fillStyle = Colors.red
+        GameCanvas.fillStyle = Colors.red
     } else {
-        Canvas.fillStyle = Colors.green1
+        GameCanvas.fillStyle = Colors.green1
     }
     var x = Math.round(this.x)
     var y = Math.round(this.y)
-    Canvas.fillRect(x, y - 1, 1, 1)
+    GameCanvas.fillRect(x, y - 1, 1, 1)
 }
 
 var Level = function() {
@@ -730,12 +731,12 @@ var Level = function() {
 }
 
 Level.prototype.render = function() {
-    Canvas.fillStyle = Colors.green1
-    Canvas.fillRect(0, this.floor, this.width, 9)
+    GameCanvas.fillStyle = Colors.green1
+    GameCanvas.fillRect(0, this.floor, this.width, 9)
     for(var index in this.tiles) {
         var tile = this.tiles[index]
-        Canvas.fillStyle = Colors.green2
-        Canvas.fillRect(tile.x, tile.y, tile.width, tile.height)
+        GameCanvas.fillStyle = Colors.green2
+        GameCanvas.fillRect(tile.x, tile.y, tile.width, tile.height)
     }
 }
 
@@ -774,49 +775,42 @@ Game.prototype.render = function() {
         this.explosions[id].render()
     this.level.render()
 
-    var score = "1234567890"
-    for(var index in score) {
-        var char = Font[score[index]]
-        var offset = parseInt(index) * 4
+    //console.log(Object.keys(this.zombies).length)
+    if(this.hero.hasKilledZombie == true) {
+
+    }
+
+    drawString("1234567890", {x: 2, y: 2, canvas: ScoreCanvas})
+
+    var x = Math.round(game.hero.x - (16 * 8) / 2) / 8
+    x = Math.max(Math.min(x, (game.level.width / 8) - 16), 0)
+    document.getElementById("game").style.left = -x + "em"
+}
+
+function drawString(string, options) {
+    var canvas = options.canvas || GameCanvas
+    for(var index in string) {
+        var char = Font[string[index]]
+        var stringpos = parseInt(index) * 4
         for(var cy in char) {
             for(var cx in char[cy]) {
                 if(char[cy][cx] == 1) {
-                    var y = parseInt(cy) + 2
-                    var x = offset + parseInt(cx) + 2
-                    Canvas.fillStyle = Colors.white
-                    Canvas.fillRect(x, y, 1, 1)
+                    var y = parseInt(cy) + (options.y || 0)
+                    var x = stringpos + parseInt(cx) + (options.x || 0)
+                    canvas.fillStyle = Colors.white
+                    canvas.fillRect(x, y, 1, 1)
                 }
             }
         }
     }
-
-    var x = Math.round(game.hero.x - (16 * 8) / 2) / 8
-    x = Math.max(Math.min(x, (game.level.width / 8) - 16), 0)
-    document.getElementById("canvas").style.left = -x + "em"
 }
 
 window.game = new Game()
 new Level({})
 new Hero({})
-/*for(var i = 0; i < 16; i++) {
-    new Zombie({
-        y: -2 - (Math.random() * 48),
-        x: (i * 2 * 8) + (Math.random() * 2 - 1),
-        direction: Math.random() < 0.5 ? +1 : -1,
-    })
-}
-new Zombie({
-    x: 14*8,
-    y: game.level.floor - 1,
-    direction: -1,
-    //x: Math.random() * game.level.width,
-    //direction: Math.random() < 0.5 ? +1 : -1,
-})*/
 
 Loop(function(tick) {
     game.update(tick)
-
-    Canvas.clearRect(0, 0, game.level.width, 72)
-
+    GameCanvas.clearRect(0, 0, game.level.width, 72)
     game.render(tick)
 })
