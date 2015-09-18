@@ -106,11 +106,11 @@ window.Font = {
         [1, 1, 0],
     ],
     E: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [1, 1, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+        [1, 1, 1],
     ],
     F: [
         [0, 0, 0],
@@ -120,11 +120,11 @@ window.Font = {
         [0, 0, 0],
     ],
     G: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [0, 1, 0],
+        [1, 0, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [0, 1, 0],
     ],
     H: [
         [0, 0, 0],
@@ -155,11 +155,11 @@ window.Font = {
         [0, 0, 0],
     ],
     L: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0],
+        [1, 1, 1],
     ],
     M: [
         [1, 0, 1],
@@ -204,25 +204,25 @@ window.Font = {
         [1, 0, 1],
     ],
     S: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [0, 1, 1],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
     ],
     T: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [1, 1, 1],
+        [0, 1, 0],
+        [0, 1, 0],
+        [0, 1, 0],
+        [0, 1, 0],
     ],
     U: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [0, 1, 0],
     ],
     V: [
         [0, 0, 0],
@@ -258,6 +258,13 @@ window.Font = {
         [0, 0, 0],
         [0, 0, 0],
         [0, 0, 0],
+    ],
+    _: [
+        [1, 0, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+        [0, 1, 0],
     ]
 }
 
@@ -389,18 +396,21 @@ Hero.prototype.update = function(tick) {
         if(Keyboard.isJustDown(Controls.S)
         || Keyboard.isJustDown(Controls.DOWN)
         || Keyboard.isJustDown(Controls.SPACE)) {
-            new Bomb({x: this.x, y: this.y})
-            if(this.hasDroppedBomb == false) {
-                window.setTimeout(function() {
-                    game.hero.hasDroppedBomb = true
-                }, 500)
-                window.setTimeout(function() {
-                    new Zombie({
-                        x: -2,
-                        y: 72 - 9 - 1,
-                        direction: +1,
-                    })
-                }, 1000)
+            if(this.hasKilledZombie == true
+            || Object.keys(game.bombs).length == 0) {
+                new Bomb({x: this.x, y: this.y})
+                if(this.hasDroppedBomb == false) {
+                    window.setTimeout(function() {
+                        game.hero.hasDroppedBomb = true
+                    }, 500)
+                    window.setTimeout(function() {
+                        new Zombie({
+                            x: -2,
+                            y: 72 - 9 - 1,
+                            direction: +1,
+                        })
+                    }, 1000)
+                }
             }
         }
         // input: jumping/diving
@@ -785,12 +795,12 @@ Zombie.prototype.explode = function(blast) {
     this.state = "dying"
     if(this.x < blast.x) {
         this.direction = -1
-        this.vx = -1
+        this.vx = -((Math.random() * 0.5) + 1)
     } else {
         this.direction = +1
-        this.vx = +1
+        this.vx = +((Math.random() * 0.5) + 1)
     }
-    this.vy = -3
+    this.vy = -((Math.random() * 0.5) + 2.75)
 }
 
 Zombie.prototype.isColliding = function(object) {
@@ -1053,14 +1063,30 @@ Game.prototype.render = function() {
         drawString(this.hero.score + "", {x: 2, y: 2, canvas: ScoreCanvas})
     }
 
+    var hearts = ""
+    for(var i = 0; i < game.hero.health; i++) {
+        hearts += "_"
+    }
+    drawString(hearts, {rx: 128 - 2, y: 2, color: Colors.red, canvas: ScoreCanvas})
+
+    if(game.hero.struggling > -1) {
+        drawString("STRUGGLE", {
+            cx: Math.round(game.hero.x + 1 - Math.random()),
+            y: Math.round(game.hero.y - game.hero.height - 7 - Math.random()),
+            color: Colors.red
+        })
+    }
+
+    if(this.hero.damaged > 0.05) {
+        GameCanvas.fillStyle = "rgba(198, 68, 68, 0.75)"
+        GameCanvas.fillRect(0, 0, game.level.width, 72)
+    }
+
     document.getElementById("game").style.left = -game.hero.camera + "em"
 }
 
 function drawString(string, options) {
     var canvas = options.canvas || GameCanvas
-    if(canvas == ScoreCanvas) {
-        ScoreCanvas.clearRect(0, 0, 128, 72)
-    }
     string = string.toUpperCase()
     var sx = 0
     var sy = 0
@@ -1070,6 +1096,12 @@ function drawString(string, options) {
         sy = options.y
     } if(options.cx) {
         sx = options.cx - ((string.length * 4) / 2)
+    } if(options.rx) {
+        sx = options.rx - (string.length * 4)
+    }
+    canvas.fillStyle = Colors.white
+    if(options.color) {
+        canvas.fillStyle = options.color
     }
     for(var index in string) {
         var char = Font[string[index]]
@@ -1079,7 +1111,6 @@ function drawString(string, options) {
                 if(char[cy][cx] == 1) {
                     var y = parseInt(cy) + sy
                     var x = stringpos + parseInt(cx) + sx
-                    canvas.fillStyle = Colors.white
                     canvas.fillRect(x, y, 1, 1)
                 }
             }
@@ -1094,5 +1125,6 @@ new Hero({})
 Loop(function(tick) {
     game.update(tick)
     GameCanvas.clearRect(0, 0, game.level.width, 72)
+    ScoreCanvas.clearRect(0, 0, 128, 72)
     game.render(tick)
 })
