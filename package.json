@@ -1,6 +1,6 @@
 {
   "name": "zompocalypse",
-  "version": "0.0.0",
+  "version": "1.0.1",
   "description": "A game for JS13K 2015.",
   "repository": "http://github.com/ehgoodenough/zompocalypse-js13k",
   "devDependencies": {
@@ -16,5 +16,13 @@
     "gulp-util": "^3.0.6",
     "gulp-zip": "^3.0.2",
     "opn": "^3.0.2"
+  },
+  "main": "index.html",
+  "window": {
+      "width": 1024,
+      "height": 576,
+      "toolbar": false,
+      "fullscreen": true,
+      "title": "Zompocalypse"
   }
 }

@@ -278,6 +278,7 @@ window.Controls = {
     LEFT: 37,
     RIGHT: 39,
     SPACE: 32,
+    ESC: 27
 }
 
 window.Loop = function(func) {
@@ -350,6 +351,14 @@ var Hero = function() {
 }
 
 Hero.prototype.update = function(tick) {
+    if(Keyboard.isJustDown(Controls.ESC)) {
+        console.log("Yo")
+        try {
+            require("nw.gui").App.quit()
+        } catch(error) {
+            //?!
+        }
+    }
     if(this.struggling > -1) {
         var continue_struggling = false
         for(var id in game.zombies) {

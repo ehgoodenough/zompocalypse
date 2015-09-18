@@ -26,7 +26,7 @@ gulp.task("build", function() {
         .pipe(gulp_minify_html())
         .pipe(gulp.dest("./build"))
         .pipe(gulp_connect.reload())
-        .pipe(gulp_zip("index.zip"))
+        .pipe(gulp_zip("index.nw"))
         .pipe(gulp_micro({limit: 13 * 1024}))
         .pipe(gulp_size({title: "JS13K"}))
         .pipe(gulp.dest("./build"))
