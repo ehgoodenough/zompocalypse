@@ -2,7 +2,7 @@ var gulp = require("gulp")
 var gulp_zip = require("gulp-zip")
 var gulp_util = require("gulp-util")
 var gulp_size = require("gulp-size")
-var gulp_micro = require("gulp-micro")
+var gulp_debug = require("gulp-debug")
 var gulp_inline = require("gulp-inline")
 var gulp_uglify = require("gulp-uglify")
 var gulp_connect = require("gulp-connect")
@@ -26,9 +26,7 @@ gulp.task("build", function() {
         .pipe(gulp_minify_html())
         .pipe(gulp.dest("./build"))
         .pipe(gulp_connect.reload())
-        .pipe(gulp_zip("index.nw"))
-        .pipe(gulp_micro({limit: 13 * 1024}))
-        .pipe(gulp_size({title: "JS13K"}))
+        //.pipe(gulp_size({title: "JS13K"}))
         .pipe(gulp.dest("./build"))
 })
 
@@ -45,6 +43,7 @@ gulp.task("server", function() {
     opn("http://localhost:8080")
 })
 
+/*
 process.on("uncaughtException", function (error) {
     console.error(gulp_util.colors.red(error))
     gulp_util.beep()
