@@ -1,3 +1,6 @@
+var Pixi = require("pixi.js")
+var Colors = require("./scripts/Colors")
+
 window.GameCanvas = document.getElementById("game").getContext("2d")
 window.ScoreCanvas = document.getElementById("score").getContext("2d")
 

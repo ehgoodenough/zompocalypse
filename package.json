@@ -2,7 +2,20 @@
   "name": "zompocalypse",
   "version": "1.0.1",
   "description": "A game for JS13K 2015.",
-  "repository": "http://github.com/ehgoodenough/zompocalypse-js13k",
+  "license": {
+    "type": "mit",
+    "url": "https://opensource.org/licenses/MIT"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ehgoodenough/zompocalypse"
+  },
+  "scripts": {
+    "build": "node build"
+  },
+  "dependencies": {
+    "pixi.js": "^3.0.7"
+  },
   "devDependencies": {
     "chalk": "^1.1.1",
     "gulp": "^3.9.0",
@@ -10,6 +23,7 @@
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^2.2.0",
     "gulp-debug": "^2.1.0",
+    "gulp-if": "^1.2.5",
     "gulp-inline": "0.0.15",
     "gulp-minify-css": "^1.2.1",
     "gulp-minify-html": "^1.0.4",
@@ -21,12 +35,12 @@
     "opn": "^3.0.2",
     "yargs": "^3.26.0"
   },
-  "main": "index.html",
   "window": {
     "width": 1024,
     "height": 576,
     "toolbar": false,
     "fullscreen": true,
     "title": "Zompocalypse"
-  }
+  },
+  "main": "index.html"
 }
