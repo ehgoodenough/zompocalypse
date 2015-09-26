@@ -5,5 +5,3 @@ var Colors = {
     green2: "#79936C",
     green3: "#293833",
 }
-
-module.exports = Colors
