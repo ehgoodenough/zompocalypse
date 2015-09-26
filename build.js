@@ -9,16 +9,16 @@ var gulp_inline = require("gulp-inline")
 var gulp_uglify = require("gulp-uglify")
 var gulp_connect = require("gulp-connect")
 var gulp_nwify = require("gulp-nw-builder")
+var gulp_browserify = require("gulp-browserify")
 var gulp_minify_css = require("gulp-minify-css")
 var gulp_minify_html = require("gulp-minify-html")
 var gulp_prefixify_css = require("gulp-autoprefixer")
-var gulp_jspm = require("gulp-jspm")
 
 var opn = require("opn")
 var chalk = require("chalk")
 var yargs = require("yargs")
 
-gulp.task("build", function() {
+var build = function() {
     gulp.src("./source/index.html")
         .pipe(gulp_minify_html())
         .pipe(gulp.dest("./build/web"))
@@ -29,23 +29,25 @@ gulp.task("build", function() {
         .pipe(gulp.dest("./build/web"))
         .pipe(gulp_connect.reload())
     gulp.src("./source/index.js")
-        .pipe(gulp_jspm())
-        //.pipe(gulp_uglify())
+        .pipe(gulp_browserify({
+            transform: [
+                "reactify",
+                "babelify"
+            ]
+        }))
+        .pipe(gulp_uglify())
         .pipe(gulp.dest("./build/web"))
         .pipe(gulp_connect.reload())
-})
+}
+
+build()
 
 if(yargs.argv.server) {
-    gulp.start("build")
-    gulp.watch("./source/**/*", function() {
-        gulp.start("build")
-    })
+    gulp.watch("./source/**/*", build)
     gulp_connect.server({
         root: __dirname + "/build/web",
         livereload: true,
         port: 8080
     })
     opn("http://localhost" + ":" + 8080)
-} else {
-    gulp.start("build")
 }
