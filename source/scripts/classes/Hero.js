@@ -213,3 +213,5 @@ Hero.prototype.render = function() {
     GameCanvas.fillRect(x, y, w, h)
     return
 }
+
+module.exports = Hero

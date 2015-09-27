@@ -75,3 +75,5 @@ Bomb.prototype.render = function() {
     var y = Math.round(this.y - this.height)
     GameCanvas.fillRect(x, y, this.width, this.height)
 }
+
+module.exports = Bomb

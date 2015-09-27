@@ -1,4 +1,3 @@
-
 var Particle = function(protoparticle) {
     this.x = protoparticle.x
     this.y = protoparticle.y
@@ -47,3 +46,5 @@ Particle.prototype.render = function() {
     var y = Math.round(this.y)
     GameCanvas.fillRect(x, y - 1, 1, 1)
 }
+
+module.exports = Particle

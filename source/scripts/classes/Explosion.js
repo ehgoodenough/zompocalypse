@@ -1,4 +1,3 @@
-
 var Explosion = function(protoexplosion) {
     this.x = protoexplosion.x
     this.y = protoexplosion.y
@@ -52,3 +51,5 @@ Explosion.prototype.render = function() {
     GameCanvas.arc(this.x, this.y, diameter / 2, 0, 2 * Math.PI)
     GameCanvas.fill()
 }
+
+module.exports = Explosion

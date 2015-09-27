@@ -14,14 +14,17 @@
     "build": "node build"
   },
   "dependencies": {
-    "pixi.js": "^3.0.7"
+    "pixi.js": "^3.0.7",
+    "stats.js": "0.0.14-master"
   },
   "devDependencies": {
     "babelify": "^6.3.0",
+    "beepbeep": "^1.2.0",
+    "browserify": "^11.2.0",
     "chalk": "^1.1.1",
+    "del": "^2.0.2",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^3.0.1",
-    "gulp-browserify": "^0.5.1",
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^2.2.0",
     "gulp-debug": "^2.1.0",
@@ -35,7 +38,10 @@
     "gulp-uglify": "^1.4.1",
     "gulp-util": "^3.0.6",
     "opn": "^3.0.2",
-    "reactify": "^1.1.1",
+    "uglifyify": "^3.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.4.0",
     "yargs": "^3.26.0"
   },
   "window": {

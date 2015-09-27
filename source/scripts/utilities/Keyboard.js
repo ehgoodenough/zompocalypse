@@ -28,3 +28,5 @@ document.addEventListener("keydown", function(event) {
 document.addEventListener("keyup", function(event) {
     Keyboard.data[event.keyCode] = -1
 })
+
+module.exports = Keyboard

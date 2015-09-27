@@ -1,10 +1,27 @@
-var Pixi = require("pixi.js")
-var Colors = require("./scripts/Colors")
+window.Font = require("./scripts/data/Font")
+window.Colors = require("./scripts/data/Colors")
+window.Controls = require("./scripts/data/Controls")
+
+window.Hero = require("./scripts/classes/Hero")
+window.Bomb = require("./scripts/classes/Bomb")
+window.Level = require("./scripts/classes/Level")
+window.Zombie = require("./scripts/classes/Zombie")
+window.Particle = require("./scripts/classes/Particle")
+window.Explosion = require("./scripts/classes/Explosion")
+
+window.Loop = require("./scripts/utilities/Loop")
+window.Keyboard = require("./scripts/utilities/Keyboard")
 
 window.GameCanvas = document.getElementById("game").getContext("2d")
 window.ScoreCanvas = document.getElementById("score").getContext("2d")
 
 window.gid = 0
+
+var Stats = require("stats.js")
+var stats = new Stats()
+stats.setMode(0)
+//stats.domElement.style.position = "absolute"
+document.getElementById("frame").appendChild(stats.domElement)
 
 var Game = function() {
     this.hero = null
@@ -134,8 +151,10 @@ new Level({})
 new Hero({})
 
 Loop(function(tick) {
+    stats.begin()
     game.update(tick)
     GameCanvas.clearRect(0, 0, game.level.width, 72)
     ScoreCanvas.clearRect(0, 0, 128, 72)
     game.render(tick)
+    stats.end()
 })

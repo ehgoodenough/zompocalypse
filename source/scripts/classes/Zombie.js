@@ -1,4 +1,3 @@
-
 var Zombie = function(protozombie) {
     this.x = protozombie.x
     this.y = protozombie.y || -2
@@ -160,3 +159,5 @@ Zombie.prototype.render = function() {
     var y = Math.round(this.y - h)
     GameCanvas.fillRect(x, y, w, h)
 }
+
+module.exports = Zombie

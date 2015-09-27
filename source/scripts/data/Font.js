@@ -259,3 +259,5 @@ var Font = {
         [ , 1,  ],
     ]
 }
+
+module.exports = Font

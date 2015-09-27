@@ -1,4 +1,3 @@
-
 var Level = function() {
     this.width = 256
     this.height = 72
@@ -119,3 +118,5 @@ Level.prototype.render = function() {
         GameCanvas.fillRect(tile.x, tile.y, tile.width, tile.height)
     }
 }
+
+module.exports = Level

@@ -4,3 +4,5 @@ var Loop = function(func) {
         window.requestAnimationFrame(loop.bind(null, Date.now()))
     })(Date.now())
 }
+
+module.exports = Loop

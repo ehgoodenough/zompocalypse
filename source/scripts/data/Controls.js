@@ -1,4 +1,4 @@
-window.Controls = {
+var Controls = {
     W: 87,
     D: 68,
     A: 65,
@@ -10,3 +10,5 @@ window.Controls = {
     SPACE: 32,
     ESC: 27
 }
+
+module.exports = Controls
